@@ -1,0 +1,14 @@
+How to run the two API's
+
+Python API:
+To run the python API import movement_master and image_master. There is a simple test of these files in "testing_getImage.py" to see how it works.
+When the file movement_master has been imported you have the methods setSpeed and setAngle to work with. Set angle takes an angle in randians.
+The image_master files gives you the method getImage which returns an image as a string array.
+
+REST API:
+To use the rest API start the file called "rest_python.py". It takes a parameter a port number, for example, "./rest_python 8886" will start the REST service on port 8886.
+The file "rest_python.py" needs some permissions to run. Use the following command to get the permissions: "chmod +x rest_python.py".
+To test the functions getImage and setSpeed/Angle once the server is running, do the following curl commands: 
+curl localhost:<PORT> (returns an image)
+curl -d "speed=2" localhost:<PORT> (set the speed to 2)
+curl -d "angle=1.6" localhost:<PORT> (set the angle to ~90deg)

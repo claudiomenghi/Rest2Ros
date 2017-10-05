@@ -1,0 +1,6 @@
+syntax = "proto2";
+package whatever;
+message Move {
+	optional float steering = 2;
+	optional float movement = 3;
+}
