@@ -12,8 +12,6 @@ Send a POST request::
 """
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
-import movement_master
-import image_master
 import rospy
 import socket
 import struct
