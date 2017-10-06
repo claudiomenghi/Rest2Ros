@@ -43,8 +43,9 @@ class Handler(BaseHTTPRequestHandler):
         	pub=rospy.Publisher('task_array',String, queue_size=10)
 		pub.publish((str(post_data)))
 		print 'message sent in ROS'
-        	#self._set_headers()
-        	#self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
+
+		self._set_header()
+        	self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
 		#if data != None:
 		#	print "Publishing data %s" %(data)
 		#	self.cmd_vel.publish(data)
