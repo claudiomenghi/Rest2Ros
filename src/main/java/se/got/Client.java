@@ -1,15 +1,17 @@
-import javax.net.ssl.HttpsURLConnection;
+package se.got;
 
-import java.io.BufferedReader; 
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.io.OutputStream;
-import java.net.URLEncoder;
-import org.omg.CORBA.NameValuePair;
-import java.util.List;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 public class Client{
 
 	public static void main(String[] args) throws Exception{
@@ -17,7 +19,7 @@ public class Client{
 		while(true){
 			System.out.println("sending post");
 		
-		HttpClient httpclient=HttpClients.createDefault(); 
+		CloseableHttpClient httpclient=HttpClients.createDefault(); 
 		HttpPost httppost=new HttpPost("http://127.0.0.1:8886");
 
 		List<NameValuePair> params=new ArrayList<NameValuePair>(1);
@@ -31,7 +33,7 @@ public class Client{
 		
 		if(entity !=null){
 			InputStream instram=entity.getContent();
-			instram.clos();
+			instram.close();
 		}
 		}
 	}
