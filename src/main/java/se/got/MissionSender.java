@@ -20,7 +20,7 @@ public class MissionSender {
 		System.out.println("Sending the mission using a POST request");
 
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpPost httppost = new HttpPost("http://127.0.0.1:8886");
+		HttpPost httppost = new HttpPost("http://127.0.0.1:13000");
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		params.add(new BasicNameValuePair("mission", mission));
