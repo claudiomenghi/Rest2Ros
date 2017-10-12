@@ -25,7 +25,7 @@ public class MissionSender {
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		params.add(new BasicNameValuePair("mission", mission));
 
-		httppost.setEntity(new UrlEncodedFormEntity(params, "US-ASCII"));
+		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
 		HttpResponse response = httpclient.execute(httppost);
 
