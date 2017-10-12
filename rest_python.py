@@ -58,7 +58,7 @@ class Rest:
 		# What function to call when you ctrl + c    
 		self.cmd_vel = rospy.Publisher('task_array', String, queue_size=100)
 	def run(self):
-		port=8886
+		port=13000
 		server_address = ('', port)
 		httpd = HTTPServer(('127.0.0.1', port),Handler)
 		print 'Starting httpd...'
