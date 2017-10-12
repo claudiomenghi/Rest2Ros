@@ -39,6 +39,7 @@ class Handler(BaseHTTPRequestHandler):
 	def do_POST(self):
 		content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         	post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        	post_data = post_data.decode('utf-8')
 		print 'post request received %s' %(str(post_data))
         	pub=rospy.Publisher('task_array',String, queue_size=10)
 		pub.publish((str(post_data)))
