@@ -21,6 +21,8 @@ import sys
 import unicodedata
 from sys import getsizeof
 from std_msgs.msg import String
+from cgi import parse_header, parse_multipart
+from urlparse import parse_qs
 
 class Handler(BaseHTTPRequestHandler):
 	#def __init__(self, request, client_address, socketServer):
@@ -39,8 +41,8 @@ class Handler(BaseHTTPRequestHandler):
 	def do_POST(self):
 		content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         	post_data = self.rfile.read(content_length) # <--- Gets the data itself
-        	post_data = post_data.decode('utf-8')
-		print 'post request received %s' %(str(post_data))
+		postvars=parse_qs(post_data, keep_blank_values=1)
+		print 'post request received %s' %(str(postvars))
         	pub=rospy.Publisher('task_array',String, queue_size=10)
 		pub.publish((str(post_data)))
 		print 'message sent in ROS'
