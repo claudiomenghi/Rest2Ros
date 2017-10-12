@@ -43,10 +43,10 @@ class Handler(BaseHTTPRequestHandler):
         	post_data = self.rfile.read(content_length) # <--- Gets the data itself
 
 		postvars=parse_qs(post_data, keep_blank_values=1)
-		print 'post request received %s' %(str(postvars))
+		print 'post request received %s' %(str(postvars['mission']))
 
         	pub=rospy.Publisher('task_array',String, queue_size=10)
-		pub.publish((str(post_data)))
+		pub.publish((str(postvars['mission'])))
 		print 'message sent in ROS'
 
 		self._set_header()
