@@ -29,8 +29,9 @@ public class MissionSender {
 		System.out.println("mission send: "+sentMission);
 		params.add(new BasicNameValuePair("mission",sentMission ));
 
-		//httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
+		
 		HttpResponse response = httpclient.execute(httppost);
 
 		HttpEntity entity = response.getEntity();
