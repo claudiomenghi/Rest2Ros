@@ -24,7 +24,8 @@ public class MissionSender {
 		HttpPost httppost = new HttpPost("http://127.0.0.1:13000");
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
-		String sentMission=URLEncoder.encode(mission, "UTF-8");
+		//String sentMission=URLEncoder.encode(mission, "UTF-8");
+		String sentMission=mission;
 		System.out.println("mission send: "+sentMission);
 		params.add(new BasicNameValuePair("mission",sentMission ));
 
