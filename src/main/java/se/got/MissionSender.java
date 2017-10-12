@@ -1,6 +1,7 @@
 package se.got;
 
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +24,14 @@ public class MissionSender {
 		HttpPost httppost = new HttpPost("http://127.0.0.1:13000");
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
-		params.add(new BasicNameValuePair("mission", mission));
+		//String sentMission=URLEncoder.encode(mission, "UTF-8");
+		String sentMission=mission;
+		System.out.println("mission send: "+sentMission);
+		params.add(new BasicNameValuePair("mission",sentMission ));
 
 		httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
+		
 		HttpResponse response = httpclient.execute(httppost);
 
 		HttpEntity entity = response.getEntity();

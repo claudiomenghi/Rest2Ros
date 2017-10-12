@@ -387,7 +387,7 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                MissionSender sender=new MissionSender();
                try {
-				sender.send("&lt&gt \\( r1 &amp&amp &lt&gt r2 &amp&amp &lt&gt r3 \\)");
+				sender.send("<> (r1 && <> r2 && <> r3)");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
