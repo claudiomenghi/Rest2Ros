@@ -38,19 +38,28 @@ package se.got;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.function.BinaryOperator;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.border.TitledBorder;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -61,16 +70,15 @@ import se.got.engine.EventStorage;
 import se.got.engine.PSPController;
 import se.got.gui.dialogs.EditEventDialog;
 import se.got.gui.dialogs.NewEventDialog;
-import se.got.mappings.LTLMapper;
-import se.got.mappings.MTLMapper;
-import se.got.mappings.PatternMapper;
-import se.got.mappings.PrismMapper;
-import se.got.mappings.QuantitativePrismMapper;
-import se.got.mappings.SELMapper;
+import se.got.ltl.Formula;
+import se.got.ltl.LTLConjunction;
+import se.got.ltl.LTLFormula;
+import se.got.ltl.LTLEventually;
+import se.got.ltl.atoms.LTLIPropositionalAtom;
+import se.got.ltl.visitors.ToStringVisitor;
 import se.got.sel.Event;
 import se.got.sel.patterns.Pattern;
 import se.got.sel.scopes.Scope;
-import java.awt.Toolkit;
 
 public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	/**
@@ -78,27 +86,44 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public static final BinaryOperator<LTLFormula> conjunctionOperator = (left, right) -> {
+
+		if (left.equals(LTLFormula.TRUE)) {
+			return right;
+		}
+
+		if (right.equals(LTLFormula.TRUE)) {
+			return left;
+		}
+		return new LTLConjunction(left, right);
+	};
+
 	private final static String TITLE = "co4robots: High Level Specification Panel";
-	private final static String PATTERN = "Mission specification pattern";
-	private final static String MAPPING = "Goal";
 	private final static String EVENTNAMES = "Show service names";
 	private final static String EVENTSPECIFICATION = "Show service specifications";
-	private final static String NEWEVENT = "New service";
 	private final static String EDITEVENT = "Edit service";
 	private final static String ADDEVENT = "Add Service";
-	private final static String EVENT = "Services";
-	private final static String SCOPE = "Mission Scope";
+	private final static String MOVEMENT_PATTERN = "Movement Specification Pattern";
 	private final static String SEND_MISSION = "Send mission";
+	private final static String LOAD_MISSION = "Load mission";
+	private final static String[] MOVEMENT_PATTERNS = { "Visit", "Sequenced Visit", "Ordered Visit",
+			"Strict Ordered Visit", "Fair Visit", "Patrolling", "Sequenced Patrolling", "Ordered Patrolling",
+			"Strict Ordered Patrolling", "Fair Patrolling" };
 
+	private JComboBox<String> patternBoxSelector;
+	private JTextArea ltlFormula;
+
+	private JTextArea intentText;
+	private JTextArea variation;
+	private JTextArea examples;
+	private JTextArea relationships;
+	private JTextArea occurences;
+
+	private JTextField locations;
 	public final static Color BACKGROUNDCOLOR = Color.WHITE;
 	private EventStorage fEvents;
 
 	private void initMappings() {
-		fMappings.addItem(new SELMapper());
-		fMappings.addItem(new LTLMapper());
-		fMappings.addItem(new MTLMapper());
-		fMappings.addItem(new PrismMapper());
-		fMappings.addItem(new QuantitativePrismMapper());
 	}
 
 	public Co4robotsGUI() {
@@ -109,12 +134,8 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 		initMappings();
 
 		// connect scopes with controller
-		fScopes.setController(this);
-		fSelectedScope = fScopes.getSelectedScope();
 
 		// connect patterns with controller
-		fPatterns.setController(this);
-		fSelectedPattern = fPatterns.getSelectedPattern();
 
 		// update initial SEL and mapping
 		updateSELandMapping();
@@ -147,10 +168,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 		fSelectedScope = null;
 		fSelectedPattern = null;
 		EventSelectionValidator.clearSelection();
-		fScopes.updateEvents();
-		fPatterns.updateEvents();
-		fScopes.clearSelection();
-		fPatterns.clearSelection();
 		fSEs.setEnabled(true);
 		fESpec.setSelected(false);
 		fEName.setSelected(true);
@@ -186,7 +203,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	}
 
 	public void updateScope() {
-		fSelectedScope = fScopes.getSelectedScope();
 
 		EventSelectionValidator.updateScopeEvents(fSelectedScope);
 
@@ -206,7 +222,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	}
 
 	public void updatePattern() {
-		fSelectedPattern = fPatterns.getSelectedPattern();
 
 		EventSelectionValidator.updatePatternEvents(fSelectedPattern);
 
@@ -241,404 +256,283 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 
 			// fSELP.setText( sb.toString() );
 
-			PatternMapper lMapper = (PatternMapper) fMappings.getSelectedItem();
-
-			if (lMapper != null) {
-				String lMapping = lMapper.getMapping(fSelectedScope, fSelectedPattern);
-
-				if (!lMapping.isEmpty()) {
-					if (lMapper.hasMappingErrorOccurred())
-						fMapping.setForeground(Color.red);
-					else
-						fMapping.setForeground(Color.black);
-					fMapping.setText(lMapping);
-				} else {
-					fMapping.setForeground(Color.red);
-					fMapping.setText(lMapper.getNotSupportedMessage());
-				}
-			}
 		}
 	}
 
 	/**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+	 * This method is called from within the constructor to initialize the form.
+	 * WARNING: Do NOT modify this code. The content of this method is always
+	 * regenerated by the Form Editor.
+	 */
+	// <editor-fold defaultstate="collapsed" desc="Generated
+	// Code">//GEN-BEGIN:initComponents
+	private void initComponents() {
 
-        scopeJPanel = new javax.swing.JPanel();
-        scopeJPanel.setBackground(BACKGROUNDCOLOR);
-        
-        fScopes = new se.got.gui.panels.scopes.ScopePanel();
-        fScopes.setBackground(BACKGROUNDCOLOR);
-        
-        patternJPanel = new javax.swing.JPanel();
-        fPatterns = new se.got.gui.panels.pattern.PatternPanel();
-        optionJPanel = new javax.swing.JPanel();
-        jPanelLogo = new javax.swing.JPanel();
-        fEName = new javax.swing.JCheckBox();
-        fESpec = new javax.swing.JCheckBox();
-        fClear = new javax.swing.JButton();
-        this.sendMission=new javax.swing.JButton();
-        jPanel5 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        fSELP = new javax.swing.JTextPane();
-        propertyPanel = new javax.swing.JPanel();
-        fMappings = new javax.swing.JComboBox();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        fMapping = new javax.swing.JTextArea();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        eventJPanel = new javax.swing.JPanel();
-        fNE = new javax.swing.JButton();
-        fSEs = new javax.swing.JButton();
-        fEE = new javax.swing.JButton();
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(optionJPanel);        
+		scopeJPanel = new javax.swing.JPanel();
+		scopeJPanel.setBackground(BACKGROUNDCOLOR);
 
-        getContentPane().setBackground(BACKGROUNDCOLOR);
-        patternJPanel.setBackground(BACKGROUNDCOLOR);
-        fPatterns.setBackground(BACKGROUNDCOLOR);
-        optionJPanel.setBackground(BACKGROUNDCOLOR);
-        jPanelLogo.setBackground(BACKGROUNDCOLOR);
-        fEName.setBackground(BACKGROUNDCOLOR);
-        fESpec.setBackground(BACKGROUNDCOLOR);
-        fClear.setBackground(BACKGROUNDCOLOR);
-        jPanel5.setBackground(BACKGROUNDCOLOR);
-        jScrollPane1.setBackground(BACKGROUNDCOLOR);
-        fSELP.setBackground(BACKGROUNDCOLOR);
-        fMappings.setBackground(BACKGROUNDCOLOR);
-        jScrollPane2.setBackground(BACKGROUNDCOLOR);
-        fMapping.setBackground(BACKGROUNDCOLOR);
-        jLabel1.setBackground(BACKGROUNDCOLOR);
-        jLabel2.setBackground(BACKGROUNDCOLOR);
-        eventJPanel.setBackground(BACKGROUNDCOLOR);
-        fNE.setBackground(BACKGROUNDCOLOR);
-        fSEs.setBackground(BACKGROUNDCOLOR);
-        fEE.setBackground(BACKGROUNDCOLOR);
-        jPanelLogo.setBackground(Color.WHITE);
-       
-        
-        
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle(TITLE);
-        setResizable(false);
+		patternJPanel = new javax.swing.JPanel();
+		optionJPanel = new javax.swing.JPanel();
+		jPanelLogo = new javax.swing.JPanel();
+		fEName = new javax.swing.JCheckBox();
+		fESpec = new javax.swing.JCheckBox();
+		this.sendMission = new javax.swing.JButton();
+		this.loadMission = new javax.swing.JButton();
+		jPanel5 = new javax.swing.JPanel();
+		jScrollPane1 = new javax.swing.JScrollPane();
+		fSELP = new javax.swing.JTextPane();
+		propertyPanel = new javax.swing.JPanel();
+		jScrollPane2 = new javax.swing.JScrollPane();
+		fMapping = new javax.swing.JTextArea();
+		jLabel1 = new javax.swing.JLabel();
+		jLabel2 = new javax.swing.JLabel();
+		eventJPanel = new javax.swing.JPanel();
+		fNE = new javax.swing.JButton();
+		fSEs = new javax.swing.JButton();
+		fEE = new javax.swing.JButton();
+		javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(optionJPanel);
 
-        scopeJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(SCOPE));
-        scopeJPanel.setToolTipText("");
+		getContentPane().setBackground(BACKGROUNDCOLOR);
+		patternJPanel.setBackground(BACKGROUNDCOLOR);
+		optionJPanel.setBackground(BACKGROUNDCOLOR);
+		jPanelLogo.setBackground(BACKGROUNDCOLOR);
+		fEName.setBackground(BACKGROUNDCOLOR);
+		fESpec.setBackground(BACKGROUNDCOLOR);
+		jPanel5.setBackground(BACKGROUNDCOLOR);
+		jScrollPane1.setBackground(BACKGROUNDCOLOR);
+		fSELP.setBackground(BACKGROUNDCOLOR);
+		jScrollPane2.setBackground(BACKGROUNDCOLOR);
+		fMapping.setBackground(BACKGROUNDCOLOR);
+		jLabel1.setBackground(BACKGROUNDCOLOR);
+		jLabel2.setBackground(BACKGROUNDCOLOR);
+		eventJPanel.setBackground(BACKGROUNDCOLOR);
+		fNE.setBackground(BACKGROUNDCOLOR);
+		fSEs.setBackground(BACKGROUNDCOLOR);
+		fEE.setBackground(BACKGROUNDCOLOR);
+		jPanelLogo.setBackground(Color.WHITE);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(scopeJPanel);
-        scopeJPanel.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(fScopes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(fScopes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+		setTitle(TITLE);
+		setResizable(false);
 
-        patternJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(PATTERN));
+		scopeJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(MOVEMENT_PATTERN));
+		scopeJPanel.setToolTipText("");
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(patternJPanel);
-        patternJPanel.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(fPatterns, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(fPatterns, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+		javax.swing.GroupLayout missionPanel = new javax.swing.GroupLayout(scopeJPanel);
+		scopeJPanel.setLayout(missionPanel);
 
-        optionJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
+		DefaultComboBoxModel<String> patternItems = new DefaultComboBoxModel<>();
 
-        fEName.setSelected(true);
-        fEName.setText(EVENTNAMES);
-        fEName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fENameActionPerformed(evt);
-            }
-        });
+		Arrays.asList(MOVEMENT_PATTERNS).stream().forEach(patternItems::addElement);
 
-        fESpec.setText(EVENTSPECIFICATION);
-        fESpec.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fESpecActionPerformed(evt);
-            }
-        });
+		patternBoxSelector = new JComboBox<String>(patternItems);
 
-        fClear.setText("Reset Editor");
-        fClear.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fClearActionPerformed(evt);
-            }
-        });
+		missionPanel.setHorizontalGroup(
+				missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(missionPanel
+						.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				// .addComponent(patternBoxSelector,
+				// javax.swing.GroupLayout.PREFERRED_SIZE,
+				// javax.swing.GroupLayout.DEFAULT_SIZE,
+				// javax.swing.GroupLayout.PREFERRED_SIZE)
+				));
 
-        this.sendMission.setText(SEND_MISSION);
-        this.sendMission.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-               MissionSender sender=new MissionSender();
-               try {
-				sender.send("<> (r1 && <> r2 && <> r3)");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		missionPanel.setVerticalGroup(
+				missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(missionPanel
+						.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				// .addComponent(patternBoxSelector,
+				// javax.swing.GroupLayout.PREFERRED_SIZE,
+				// javax.swing.GroupLayout.DEFAULT_SIZE,
+				// javax.swing.GroupLayout.PREFERRED_SIZE)
+				));
+
+		optionJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
+
+		fEName.setSelected(true);
+		fEName.setText(EVENTNAMES);
+		fEName.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				fENameActionPerformed(evt);
 			}
-            }
-        });
+		});
 
-        optionJPanel.setLayout(jPanel3Layout);
+		fESpec.setText(EVENTSPECIFICATION);
+		fESpec.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				fESpecActionPerformed(evt);
+			}
+		});
 
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(fESpec))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(34, 34, 34)
-                        .addComponent(fClear))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(fEName)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(fEName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(fESpec)
-                .addGap(18, 18, 18)
-                .addComponent(fClear)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+		this.sendMission.setText(SEND_MISSION);
+		this.loadMission.setText(LOAD_MISSION);
+		this.sendMission.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
 
-        jPanelLogo.setLayout(new BorderLayout());
-        
-        BufferedImage myPicture;
+				MissionSender sender = new MissionSender();
+				try {
+					sender.send(loadMission());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		});
+		this.loadMission.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+
+				loadMission();
+			}
+
+		});
+
+		optionJPanel.setLayout(jPanel3Layout);
+
+		jPanelLogo.setLayout(new BorderLayout());
+
+		BufferedImage myPicture;
 		try {
 			System.out.println(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
-			myPicture = ImageIO.read(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
-		
-			ImageIcon icon=new ImageIcon(myPicture);
+			myPicture = ImageIO
+					.read(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
+
+			ImageIcon icon = new ImageIcon(myPicture);
 			Image image = icon.getImage();
-			//Image newimg = icon.getScaledInstance(120, 120,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
-			//icon = new ImageIcon(newimg);
+			// Image newimg = icon.getScaledInstance(120, 120,
+			// java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+			// icon = new ImageIcon(newimg);
 			JLabel picLabel = new JLabel(icon);
-	        jPanelLogo.add(picLabel);
+			jPanelLogo.add(picLabel);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
-        
+		}
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("High Level Mission"));
+		fSEs.setText(ADDEVENT);
+		fSEs.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				fSEsActionPerformed(evt);
+			}
+		});
 
-        fSELP.setEditable(true);
-        
-        //fSELP.setColumns(20);
-        fSELP.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
-        //fSELP.setLineWrap(true);
-        //fSELP.setRows(5);
-        //fSELP.setWrapStyleWord(true);
-        jScrollPane1.setViewportView(fSELP);
+		fEE.setText(EDITEVENT);
+		fEE.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				fEEActionPerformed(evt);
+			}
+		});
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 334, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1)
-                .addContainerGap())
-        );
+		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+		getContentPane().setLayout(layout);
 
-        propertyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(MAPPING));
-        propertyPanel.setBackground(BACKGROUNDCOLOR);
-        fMappings.setMaximumSize(new java.awt.Dimension(180, 27));
-        fMappings.setMinimumSize(new java.awt.Dimension(180, 27));
-        fMappings.setPreferredSize(new java.awt.Dimension(180, 27));
-        fMappings.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fMappingsActionPerformed(evt);
-            }
-        });
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 
-        fMapping.setEditable(false);
-        fMapping.setColumns(20);
-        fMapping.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
-        fMapping.setLineWrap(true);
-        fMapping.setRows(5);
-        jScrollPane2.setViewportView(fMapping);
+		TitledBorder movementPatternTitle = BorderFactory.createTitledBorder("Movement Pattern");
+		movementPatternTitle.setTitlePosition(TitledBorder.RIGHT);
 
-        jLabel1.setText("Target Logic:");
+		patternBoxSelector.setBorder(movementPatternTitle);
 
-        jLabel2.setText("Formula:");
+		JPanel locationPanel = new JPanel();
+		locations = new JTextField(40);
+		locations.setText("Insert the positions to be considered separated by a comma");
 
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(propertyPanel);
-        propertyPanel.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(18, 18, 18)
-                                .addComponent(fMappings, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(this.sendMission)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jScrollPane2))
-                        .addContainerGap())))
-        );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(fMappings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(this.sendMission)
-                		)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
+		locationPanel.add(locations);
+		TitledBorder locationsTitle = BorderFactory.createTitledBorder("Locations");
+		locationsTitle.setTitlePosition(TitledBorder.RIGHT);
+		locationPanel.setBorder(locationsTitle);
 
-        eventJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(EVENT));
+		ltlFormula = new JTextArea();
+		TitledBorder ltlFormulaTitle = BorderFactory.createTitledBorder("LTL formula associated with the pattern");
+		ltlFormulaTitle.setTitlePosition(TitledBorder.RIGHT);
+		ltlFormula.setBorder(ltlFormulaTitle);
 
-        fNE.setText(NEWEVENT);
-        fNE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fNEActionPerformed(evt);
-            }
-        });
+		intentText = new JTextArea();
+		intentText.setLineWrap(true);
 
-        fSEs.setText(ADDEVENT);
-        fSEs.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fSEsActionPerformed(evt);
-            }
-        });
+		TitledBorder intentTitle = BorderFactory.createTitledBorder("Intent");
+		intentTitle.setTitlePosition(TitledBorder.RIGHT);
+		intentText.setBorder(intentTitle);
 
-        fEE.setText(EDITEVENT);
-        fEE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fEEActionPerformed(evt);
-            }
-        });
+		variation = new JTextArea();
+		variation.setLineWrap(true);
+		TitledBorder variationTitle = BorderFactory.createTitledBorder("Variations");
+		variationTitle.setTitlePosition(TitledBorder.RIGHT);
+		variation.setBorder(variationTitle);
 
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(eventJPanel);
-        eventJPanel.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fSEs)
-                    .addComponent(fNE)
-                    .addComponent(fEE))
-                .addContainerGap(12, Short.MAX_VALUE))
-        );
+		examples = new JTextArea();
+		examples.setLineWrap(true);
+		TitledBorder examplesTitle = BorderFactory.createTitledBorder("Examples and Known Uses");
+		examplesTitle.setTitlePosition(TitledBorder.RIGHT);
+		examples.setBorder(examplesTitle);
 
-        jPanel7Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {fEE, fNE, fSEs});
+		relationships = new JTextArea();
+		relationships.setLineWrap(true);
+		TitledBorder relationshipsTitle = BorderFactory.createTitledBorder("Relationships");
+		relationshipsTitle.setTitlePosition(TitledBorder.RIGHT);
+		relationships.setBorder(relationshipsTitle);
 
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(fNE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fEE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fSEs)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        
-        
+		occurences = new JTextArea();
+		occurences.setLineWrap(true);
+		TitledBorder occuttencesTitle = BorderFactory.createTitledBorder("Occurences");
+		occuttencesTitle.setTitlePosition(TitledBorder.RIGHT);
+		occurences.setBorder(occuttencesTitle);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(patternBoxSelector)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(locationPanel)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(ltlFormula)
 
-        
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                		 .addGroup(layout.createSequentialGroup().addComponent(jPanelLogo))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(patternJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(propertyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(scopeJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(26, 26, 26)
-                        .addComponent(optionJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(eventJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(12, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(8, 8, 8)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(jPanelLogo))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(scopeJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(eventJPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(optionJPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                       ))
-                .addGap(15, 15, 15)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(propertyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(patternJPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(intentText)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(variation)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(examples)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(relationships)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(occurences)
 
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
+		).addGroup(layout.createParallelGroup().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+				.addComponent(this.loadMission).addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+				.addComponent(this.sendMission))
+
+		);
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo).addGroup(
+
+						layout.createParallelGroup().addGroup(layout.createSequentialGroup()
+
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(patternBoxSelector)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(locationPanel)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(ltlFormula)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(intentText)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(variation)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(examples)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(relationships)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+								.addComponent(occurences))
+
+								.addGroup(layout.createSequentialGroup()
+										.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+										.addComponent(this.loadMission)
+										.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+										.addComponent(this.sendMission))));
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	      setBounds(0,0,screenSize.width, screenSize.height);
+	      setVisible(true);
+//		pack();
+	}// </editor-fold>//GEN-END:initComponents
 
 	private void fNEActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fNEActionPerformed
 		// add new event
 
 		if ((new NewEventDialog(this)).showDialog() != null) {
 			EventSelectionValidator.startEditUpdate();
-			fScopes.updateEvents();
-			fPatterns.updateEvents();
 			EventSelectionValidator.stopEditUpdate();
 		}
 
@@ -699,8 +593,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 		newEvent("Z2");
 		newEvent("Z3");
 
-		fScopes.updateEvents();
-		fPatterns.updateEvents();
 		fSEs.setEnabled(false);
 
 		this.requestFocus();
@@ -723,8 +615,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 
 		if ((new EditEventDialog(this)).showDialog() != null) {
 			EventSelectionValidator.startEditUpdate();
-			fScopes.updateEvents();
-			fPatterns.updateEvents();
 			EventSelectionValidator.stopEditUpdate();
 		}
 
@@ -732,18 +622,15 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	}// GEN-LAST:event_fEEActionPerformed
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton fClear;
 	private javax.swing.JButton sendMission;
+	private javax.swing.JButton loadMission;
 	private javax.swing.JButton fEE;
 	private javax.swing.JCheckBox fEName;
 	private javax.swing.JCheckBox fESpec;
 	private javax.swing.JTextArea fMapping;
-	private javax.swing.JComboBox fMappings;
 	private javax.swing.JButton fNE;
-	private se.got.gui.panels.pattern.PatternPanel fPatterns;
 	private javax.swing.JTextPane fSELP;
 	private javax.swing.JButton fSEs;
-	private se.got.gui.panels.scopes.ScopePanel fScopes;
 	private javax.swing.JLabel jLabel1;
 	private javax.swing.JLabel jLabel2;
 	private javax.swing.JPanel scopeJPanel;
@@ -757,4 +644,36 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	private javax.swing.JScrollPane jScrollPane2;
 	// End of variables declaration//GEN-END:variables
 
+	private String loadMission() {
+
+		String selectedIdem = (String) patternBoxSelector.getSelectedItem();
+
+		LTLFormula computedltlformula = LTLFormula.TRUE;
+
+		String locationsText = locations.getText().replaceAll(" ", "");
+		String[] selectedLocations = locationsText.split(",");
+		switch (selectedIdem) {
+		case "Visit":
+			computedltlformula = Arrays.asList(selectedLocations).stream()
+					.map(location -> (LTLFormula) new LTLEventually(new LTLIPropositionalAtom(location)))
+					.reduce(LTLFormula.TRUE, conjunctionOperator);
+
+			intentText.setText(
+					"A robot must visit an area or a set of areas. This area can be a set of locations of a building, or a set of points of interest on a map that must be surveyed.");
+			variation.setText(
+					"If a relational notion of space is used, propositions have the form \"r in l\" where in indicates that the robot r is inside location l, while l identifies the desired location. If an absolute notion of space is used, propositions have the form \"r at (x,y,z)\" where at indicates that the robot r is in a specific point and (x,y,z) indicates a precise position in space. A variation can be obtained where not all the areas in the set must be visited. In this case, it is sufficient to replace the AND operator with an OR.");
+			examples.setText(
+					"A common usage example of the Visit pattern is a scenario in which a robot has to collect a set of items that are placed in different locations and bring them in a target destination. Visit and Avoidance patterns often go together. Avoidance patterns are used e.g. to require robots to avoid obstacles as they guard an area. Trigger patterns can also be used in combination with the Visit pattern to specify conditions upon which Visit should start or stop.");
+			relationships.setText(
+					"	The Visit pattern generalizes most of the core movement patterns that constrain how locations are visited.");
+			occurences.setText(
+					"Yoo et al. and Kress-Gazit et al. formulate an LTL mission specification to ensure that a set of areas are visited. In the first case, the visiting pattern is combined with the specification of past and future avoidance mission requirements. In the second case, an LTL mission specification is provided to describe the following mission requirement: the robot must go to rooms $P1$, $P2$, $P3$ and $P4$ in any order.");
+			break;
+		default:
+			throw new IllegalArgumentException("No pattern with name " + selectedIdem);
+		}
+		ltlFormula.setText(computedltlformula.accept(new ToStringVisitor()));
+
+		return computedltlformula.accept(new ToStringVisitor());
+	}
 }
