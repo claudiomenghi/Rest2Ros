@@ -523,8 +523,9 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 										.addComponent(this.sendMission))));
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	      setBounds(0,0,screenSize.width, screenSize.height);
+	      setBounds(0,0,screenSize.width/2, screenSize.height/2);
 	      setVisible(true);
+	      this.setResizable(true);
 //		pack();
 	}// </editor-fold>//GEN-END:initComponents
 
