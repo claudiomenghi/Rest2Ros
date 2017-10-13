@@ -27,7 +27,7 @@ public class ToStringVisitor implements MITLIVisitor<String> {
 
 	@Override
 	public String visit(LTLConjunction formula) {
-		return "( "+formula.getLeftChild().accept(this)+" && ("+formula.getRightChild().accept(this)+" )";
+		return "( "+formula.getLeftChild().accept(this)+") && ("+formula.getRightChild().accept(this)+" )";
 	}
 
 	@Override
