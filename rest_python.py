@@ -62,7 +62,7 @@ class Rest:
 	def __init__(self):
 		rospy.init_node('Receiver', anonymous=False)
 		# What function to call when you ctrl + c    
-		self.cmd_vel = rospy.Publisher('task_array', String, queue_size=100)
+		self.cmd_vel = rospy.Publisher('task_array', String, queue_size=100, latch=True)
 	def run(self):
 		port=13000
 		server_address = ('', port)
