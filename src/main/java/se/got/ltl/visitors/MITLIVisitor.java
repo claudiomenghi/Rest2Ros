@@ -9,6 +9,7 @@ import se.got.ltl.LTLIImplies;
 import se.got.ltl.LTLINegation;
 import se.got.ltl.LTLISince;
 import se.got.ltl.LTLIUntil;
+import se.got.ltl.LTLNext;
 import se.got.ltl.atoms.LTLIPropositionalAtom;
 import se.got.ltl.atoms.MITLIRelationalAtom;
 import se.got.ltl.atoms.MITLITrue;
@@ -43,5 +44,8 @@ public interface MITLIVisitor<T> {
 
 
 	public T visit(LTLIGlobally mitliGlobally);
+
+
+	public T visit(LTLNext ltlNext);
 
 }

@@ -8,7 +8,6 @@ import se.got.ltl.atoms.LTLIPropositionalAtom;
 import se.got.ltl.atoms.MITLITrue;
 import se.got.ltl.visitors.MITLIVisitor;
 
-
 public abstract class LTLFormula extends Formula {
 
 	private int maxIntComparedto = 0;
@@ -21,7 +20,7 @@ public abstract class LTLFormula extends Formula {
 	}
 
 	public abstract Set<LTLFormula> getChildren();
-	
+
 	public abstract <T> T accept(MITLIVisitor<T> visitor);
 
 	public int maxIntComparedto() {
@@ -42,10 +41,10 @@ public abstract class LTLFormula extends Formula {
 	}
 
 	public static LTLFormula not(LTLFormula f) {
-		if(f instanceof LTLINegation){
+		if (f instanceof LTLINegation) {
 			return ((LTLINegation) f).getChild();
 		}
-		
+
 		return new LTLINegation(f);
 	}
 
@@ -53,7 +52,11 @@ public abstract class LTLFormula extends Formula {
 
 		LTLFormula f = formulae[0];
 		for (int i = 1; i < formulae.length; i++) {
-			f = new LTLConjunction(f, formulae[i]);
+			if (f.equals(LTLFormula.TRUE)) {
+				f = formulae[i];
+			} else {
+				f = new LTLConjunction(f, formulae[i]);
+			}
 		}
 		return f;
 	}
@@ -65,9 +68,6 @@ public abstract class LTLFormula extends Formula {
 	public static LTLFormula S(LTLFormula f1, LTLFormula f2) {
 		return new LTLISince(f1, f2);
 	}
-
-
-
 
 	// Producers method to build derived boolean CLTL formulae
 	public static LTLFormula or(LTLFormula... formulae) {
@@ -94,6 +94,4 @@ public abstract class LTLFormula extends Formula {
 		return not(U(not(f1), not(f2)));
 	}
 
-	
-	
 }

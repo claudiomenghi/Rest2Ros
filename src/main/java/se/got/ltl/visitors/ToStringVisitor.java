@@ -9,6 +9,7 @@ import se.got.ltl.LTLIImplies;
 import se.got.ltl.LTLINegation;
 import se.got.ltl.LTLISince;
 import se.got.ltl.LTLIUntil;
+import se.got.ltl.LTLNext;
 import se.got.ltl.atoms.LTLIPropositionalAtom;
 import se.got.ltl.atoms.MITLIRelationalAtom;
 import se.got.ltl.atoms.MITLITrue;
@@ -73,6 +74,11 @@ public class ToStringVisitor implements MITLIVisitor<String> {
 	@Override
 	public String visit(LTLIGlobally mitliGlobally) {
 		return " [] (" + mitliGlobally.getChild().accept(this) +")";
+	}
+
+	@Override
+	public String visit(LTLNext ltlNext) {
+		return " X (" + ltlNext.getChild().accept(this) +")";
 	}
 
 }

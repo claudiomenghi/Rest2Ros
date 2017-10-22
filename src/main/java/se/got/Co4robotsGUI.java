@@ -38,14 +38,10 @@ package se.got;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.function.BinaryOperator;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -69,34 +65,22 @@ import se.got.engine.EventSelectionValidator;
 import se.got.engine.EventStorage;
 import se.got.engine.PSPController;
 import se.got.gui.dialogs.EditEventDialog;
-import se.got.gui.dialogs.NewEventDialog;
-import se.got.ltl.Formula;
-import se.got.ltl.LTLConjunction;
 import se.got.ltl.LTLFormula;
-import se.got.ltl.LTLEventually;
-import se.got.ltl.atoms.LTLIPropositionalAtom;
 import se.got.ltl.visitors.ToStringVisitor;
 import se.got.sel.Event;
 import se.got.sel.patterns.Pattern;
 import se.got.sel.scopes.Scope;
 
 public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
+
+	private static final int FRAME_INIT_HEIGTH = 600;
+
+	private static final int FRAME_INIT_WIDTH = 800;
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
-	public static final BinaryOperator<LTLFormula> conjunctionOperator = (left, right) -> {
-
-		if (left.equals(LTLFormula.TRUE)) {
-			return right;
-		}
-
-		if (right.equals(LTLFormula.TRUE)) {
-			return left;
-		}
-		return new LTLConjunction(left, right);
-	};
 
 	private final static String TITLE = "co4robots: High Level Specification Panel";
 	private final static String EVENTNAMES = "Show service names";
@@ -132,10 +116,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 		reset();
 
 		initMappings();
-
-		// connect scopes with controller
-
-		// connect patterns with controller
 
 		// update initial SEL and mapping
 		updateSELandMapping();
@@ -191,8 +171,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 	public Iterator<Event> iterator() {
 		return fEvents.iterator();
 	}
-
-	// event selection validation facet
 
 	// Scope events
 
@@ -327,23 +305,13 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 
 		patternBoxSelector = new JComboBox<String>(patternItems);
 
-		missionPanel.setHorizontalGroup(
-				missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(missionPanel
-						.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				// .addComponent(patternBoxSelector,
-				// javax.swing.GroupLayout.PREFERRED_SIZE,
-				// javax.swing.GroupLayout.DEFAULT_SIZE,
-				// javax.swing.GroupLayout.PREFERRED_SIZE)
-				));
+		missionPanel.setHorizontalGroup(missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(missionPanel.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE)));
 
-		missionPanel.setVerticalGroup(
-				missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(missionPanel
-						.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				// .addComponent(patternBoxSelector,
-				// javax.swing.GroupLayout.PREFERRED_SIZE,
-				// javax.swing.GroupLayout.DEFAULT_SIZE,
-				// javax.swing.GroupLayout.PREFERRED_SIZE)
-				));
+		missionPanel.setVerticalGroup(missionPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(missionPanel.createSequentialGroup().addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE)));
 
 		optionJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
 
@@ -371,7 +339,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 				try {
 					sender.send(loadMission());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -396,14 +363,9 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 					.read(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
 
 			ImageIcon icon = new ImageIcon(myPicture);
-			Image image = icon.getImage();
-			// Image newimg = icon.getScaledInstance(120, 120,
-			// java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
-			// icon = new ImageIcon(newimg);
 			JLabel picLabel = new JLabel(icon);
 			jPanelLogo.add(picLabel);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -522,28 +484,10 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 										.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 										.addComponent(this.sendMission))));
 
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	      setBounds(0,0,screenSize.width/2, screenSize.height/2);
-	      setVisible(true);
-	      this.setResizable(true);
-//		pack();
-	}// </editor-fold>//GEN-END:initComponents
-
-	private void fNEActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fNEActionPerformed
-		// add new event
-
-		if ((new NewEventDialog(this)).showDialog() != null) {
-			EventSelectionValidator.startEditUpdate();
-			EventSelectionValidator.stopEditUpdate();
-		}
-
-		this.requestFocus();
-	}// GEN-LAST:event_fNEActionPerformed
-
-	private void fMappingsActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fMappingsActionPerformed
-		// TODO add your handling code here:
-		updateSELandMapping();
-	}// GEN-LAST:event_fMappingsActionPerformed
+		setBounds(0, 0, FRAME_INIT_WIDTH, FRAME_INIT_HEIGTH);
+		setVisible(true);
+		this.setResizable(true);
+	}
 
 	private void fENameActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fENameActionPerformed
 		// TODO add your handling code here:
@@ -599,18 +543,6 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 		this.requestFocus();
 	}// GEN-LAST:event_fSEsActionPerformed
 
-	private void fClearActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fClearActionPerformed
-		// clear everything
-
-		reset();
-
-		updateScope();
-		updatePattern();
-
-		repaint();
-		this.requestFocus();
-	}// GEN-LAST:event_fClearActionPerformed
-
 	private void fEEActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fEEActionPerformed
 		// edit events
 
@@ -653,26 +585,19 @@ public class Co4robotsGUI extends javax.swing.JFrame implements PSPController {
 
 		String locationsText = locations.getText().replaceAll(" ", "");
 		String[] selectedLocations = locationsText.split(",");
-		switch (selectedIdem) {
-		case "Visit":
-			computedltlformula = Arrays.asList(selectedLocations).stream()
-					.map(location -> (LTLFormula) new LTLEventually(new LTLIPropositionalAtom(location)))
-					.reduce(LTLFormula.TRUE, conjunctionOperator);
 
-			intentText.setText(
-					"A robot must visit an area or a set of areas. This area can be a set of locations of a building, or a set of points of interest on a map that must be surveyed.");
-			variation.setText(
-					"If a relational notion of space is used, propositions have the form \"r in l\" where in indicates that the robot r is inside location l, while l identifies the desired location. If an absolute notion of space is used, propositions have the form \"r at (x,y,z)\" where at indicates that the robot r is in a specific point and (x,y,z) indicates a precise position in space. A variation can be obtained where not all the areas in the set must be visited. In this case, it is sufficient to replace the AND operator with an OR.");
-			examples.setText(
-					"A common usage example of the Visit pattern is a scenario in which a robot has to collect a set of items that are placed in different locations and bring them in a target destination. Visit and Avoidance patterns often go together. Avoidance patterns are used e.g. to require robots to avoid obstacles as they guard an area. Trigger patterns can also be used in combination with the Visit pattern to specify conditions upon which Visit should start or stop.");
-			relationships.setText(
-					"	The Visit pattern generalizes most of the core movement patterns that constrain how locations are visited.");
-			occurences.setText(
-					"Yoo et al. and Kress-Gazit et al. formulate an LTL mission specification to ensure that a set of areas are visited. In the first case, the visiting pattern is combined with the specification of past and future avoidance mission requirements. In the second case, an LTL mission specification is provided to describe the following mission requirement: the robot must go to rooms $P1$, $P2$, $P3$ and $P4$ in any order.");
-			break;
-		default:
-			throw new IllegalArgumentException("No pattern with name " + selectedIdem);
-		}
+		PATTERNS p = PATTERNS.valueOf(selectedIdem.toUpperCase().replaceAll(" ", "_"));
+		computedltlformula = p.getMission(selectedLocations);
+
+		intentText.setText(p.getDescription());
+
+		variation.setText(p.getVariations());
+
+		examples.setText(p.getExamples());
+
+		relationships.setText(p.getRelationships());
+
+		occurences.setText(p.getOccurrences());
 		ltlFormula.setText(computedltlformula.accept(new ToStringVisitor()));
 
 		return computedltlformula.accept(new ToStringVisitor());
