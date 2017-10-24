@@ -14,7 +14,7 @@ import se.got.ltl.atoms.LTLIPropositionalAtom;
 import se.got.ltl.atoms.MITLIRelationalAtom;
 import se.got.ltl.atoms.MITLITrue;
 
-public class ToStringVisitor implements MITLIVisitor<String> {
+public class LTLFormulaToStringVisitor implements MITLIVisitor<String> {
 
 	@Override
 	public String visit(LTLIDisjunction formula) {

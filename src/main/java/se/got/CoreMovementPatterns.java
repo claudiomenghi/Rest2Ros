@@ -14,7 +14,7 @@ import se.got.ltl.LTLIUntil;
 import se.got.ltl.LTLNext;
 import se.got.ltl.atoms.LTLIPropositionalAtom;
 
-public enum PATTERNS {
+public enum CoreMovementPatterns {
 
 	VISIT {
 		@Override
@@ -106,7 +106,7 @@ public enum PATTERNS {
 		@Override
 		public LTLFormula getMission(String[] locations) {
 
-			LTLFormula f = PATTERNS.VISIT.getMission(locations);
+			LTLFormula f = CoreMovementPatterns.VISIT.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
@@ -151,7 +151,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = PATTERNS.ORDERED_VISIT.getMission(locations);
+			LTLFormula f = CoreMovementPatterns.ORDERED_VISIT.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
@@ -198,7 +198,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = PATTERNS.VISIT.getMission(locations);
+			LTLFormula f = CoreMovementPatterns.VISIT.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
@@ -255,7 +255,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			return new LTLIGlobally(PATTERNS.VISIT.getMission(locations));
+			return new LTLIGlobally(CoreMovementPatterns.VISIT.getMission(locations));
 		}
 
 		@Override
@@ -291,7 +291,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			return new LTLIGlobally(PATTERNS.SEQUENCED_VISIT.getMission(locations));
+			return new LTLIGlobally(CoreMovementPatterns.SEQUENCED_VISIT.getMission(locations));
 		}
 
 		@Override
@@ -327,7 +327,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = new LTLIGlobally(PATTERNS.ORDERED_VISIT.getMission(locations));
+			LTLFormula f = new LTLIGlobally(CoreMovementPatterns.ORDERED_VISIT.getMission(locations));
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
@@ -376,7 +376,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = new LTLIGlobally(PATTERNS.ORDERED_VISIT.getMission(locations));
+			LTLFormula f = new LTLIGlobally(CoreMovementPatterns.ORDERED_VISIT.getMission(locations));
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
@@ -427,7 +427,7 @@ public enum PATTERNS {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = new LTLIGlobally(PATTERNS.ORDERED_VISIT.getMission(locations));
+			LTLFormula f = new LTLIGlobally(CoreMovementPatterns.ORDERED_VISIT.getMission(locations));
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
