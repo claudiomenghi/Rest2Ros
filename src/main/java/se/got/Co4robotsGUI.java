@@ -65,7 +65,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.Scrollable;
 import javax.swing.border.TitledBorder;
+import javax.swing.plaf.basic.BasicSliderUI.ScrollListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -359,6 +361,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String selectedItem = (String) patternBoxSelector.getSelectedItem();
+				
 				if (selectedItem != null) {
 					switch (selectedItem) {
 
@@ -396,10 +399,63 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					}
 				}
+				
+				//Triggers
+				if (selectedItem != null) {					
+					switch (selectedItem) {					
+					case "Wait":
+						intentText.setText(Triggers.WAIT.getDescription());
 
+						f1.removeAllItems();
+						f2.removeAllItems();
+
+						DefaultComboBoxModel<String> formulaeList1 = new DefaultComboBoxModel<String>();
+						DefaultComboBoxModel<String> formulaeList2 = new DefaultComboBoxModel<String>();
+
+						formulae.keySet().stream().forEach(p -> formulaeList1.addElement(p));
+						formulae.keySet().stream().forEach(p -> formulaeList2.addElement(p));
+
+						f1.setModel(formulaeList1);
+						f2.setModel(formulaeList2);
+						break;
+					case "Instantaneous_Reaction":
+						intentText.setText(Triggers.INSTANTANEOUS_REACTION.getDescription());
+						f1.removeAllItems();
+						f2.removeAllItems();
+
+						formulaeList1 = new DefaultComboBoxModel<String>();
+						formulaeList2 = new DefaultComboBoxModel<String>();
+
+						formulae.keySet().stream().forEach(p -> formulaeList1.addElement(p));
+						formulae.keySet().stream().forEach(p -> formulaeList2.addElement(p));
+
+						f1.setModel(formulaeList1);
+						f2.setModel(formulaeList2);
+
+						break;
+					case "Delayed_Reaction":
+						intentText.setText(Triggers.DELAYED_REACTION.getDescription());
+						f1.removeAllItems();
+						f2.removeAllItems();
+
+						formulaeList1 = new DefaultComboBoxModel<String>();
+						formulaeList2 = new DefaultComboBoxModel<String>();
+
+						formulae.keySet().stream().forEach(p -> formulaeList1.addElement(p));
+						formulae.keySet().stream().forEach(p -> formulaeList2.addElement(p));
+
+						f1.setModel(formulaeList1);
+						f2.setModel(formulaeList2);
+
+						break;
+					default:
+						break;
+					}
+				}
+				
 			}
-		});
-
+	});
+		
 		patternCathegorySelector.addActionListener(new ActionListener() {
 
 			@Override
@@ -475,7 +531,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					intentText.setText(Composition.AND.getDescription());
 					locationPanel.setVisible(false);
 					intentText.setVisible(true);
-					ltlFormula.setVisible(false);
+					ltlFormula.setVisible(true);//edited
 					variation.setVisible(false);
 					examples.setVisible(false);
 					relationships.setVisible(false);
@@ -627,7 +683,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		TitledBorder ltlFormulaTitle = BorderFactory.createTitledBorder("LTL formula associated with the pattern");
 		ltlFormulaTitle.setTitlePosition(TitledBorder.RIGHT);
 		ltlFormula.setBorder(ltlFormulaTitle);
-
+		
 		intentText = new JTextArea();
 		intentText.setLineWrap(true);
 
@@ -795,6 +851,27 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		case "Triggers":
 			Triggers p2 = Triggers.valueOf(selectedIdem.toUpperCase().replaceAll(" ", "_"));
 			// computedltlformula = p2.getMission(selectedLocations);
+			
+			intentText.setText(p2.getDescription());
+			variation.setText(p2.getVariations());
+			examples.setText(p2.getExamples());
+			relationships.setText(p2.getRelationships());
+			occurences.setText(p2.getOccurrences());
+
+			computedltlformula = p2.getMission(formulae.get((String) f1.getSelectedItem()),
+					formulae.get((String) f2.getSelectedItem()));
+			
+			ltlFormula.setText(computedltlformula.accept(new LTLFormulaToStringVisitor()));
+
+			formulae.put(FORMULA_COUNTER + " - " + (String) patternBoxSelector.getSelectedItem() + "(" + f1.getSelectedItem() +", "
+					+f2.getSelectedItem()+")", computedltlformula);
+
+			List<String> array1 = new ArrayList<String>(formulae.keySet());
+			String[]t = new String[array1.size()];
+			array1.toArray(t);
+			propertyList.setListData(t);
+			
+			FORMULA_COUNTER = FORMULA_COUNTER + 1;
 			break;
 		case "Avoidance":
 			Avoidance p = Avoidance.valueOf(selectedIdem.toUpperCase().replaceAll(" ", "_"));
