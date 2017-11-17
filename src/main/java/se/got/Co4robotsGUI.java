@@ -1,5 +1,4 @@
-/**
- * Copyright (C) 2011-2014 Swinburne University of Technology and University of Gotheborg
+* Copyright (C) 2011-2014 Swinburne University of Technology and University of Gotheborg
  *
  * These file have been developed as a part of the co4robots project.
  * It is a tool
@@ -38,8 +37,12 @@ package se.got;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,11 +63,13 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.border.TitledBorder;
 import javax.swing.plaf.basic.BasicSliderUI.ScrollListener;
@@ -109,11 +114,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private final static String LOAD_MISSION = "Load mission";
 	private final static String LOAD_PROPERTY = "Load property";
 
-	private final static String SELECT_PATTERN_CATHEGORY = "Select pattern cathegory";
+	private final static String SELECT_PATTERN_CATEGORY = "Select pattern category";
 
 	private static JList<String> propertyList;
 
-	private JComboBox<String> patternCathegorySelector;
+	private JComboBox<String> patternCategorySelector;
 	private JComboBox<String> patternBoxSelector;
 	private JTextArea ltlFormula;
 
@@ -157,7 +162,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		propertyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		initComponents();
-
+		
 		reset();
 
 		initMappings();
@@ -165,7 +170,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		// update initial SEL and mapping
 		updateSELandMapping();
 	}
-
+		
 	// Entry point
 
 	public static void main(String args[]) {
@@ -278,6 +283,35 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		}
 	}
+	
+	public static void myframe() {
+        final JFrame frame = new JFrame("JScrollbar Demo");
+        final JLabel label = new JLabel( );
+ 
+        JScrollBar hbar=new JScrollBar(JScrollBar.HORIZONTAL, 30, 20, 0, 500);
+        JScrollBar vbar=new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 500);
+ 
+        class MyAdjustmentListener implements AdjustmentListener {
+        	@Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                label.setText("Slider's position is " + e.getValue());
+                frame.repaint();
+            }
+        }
+ 
+        hbar.addAdjustmentListener(new MyAdjustmentListener( ));
+        vbar.addAdjustmentListener(new MyAdjustmentListener( ));
+ 
+        frame.setLayout(new BorderLayout( ));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300,200);
+        frame.getContentPane().add(label);
+        
+        frame.getContentPane().add(hbar, BorderLayout.SOUTH);
+        frame.getContentPane().add(vbar, BorderLayout.EAST);
+        frame.getContentPane().add(label, BorderLayout.CENTER);
+        frame.setVisible(true);
+    }
 
 	/**
 	 * This method is called from within the constructor to initialize the form.
@@ -287,7 +321,21 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	// <editor-fold defaultstate="collapsed" desc="Generated
 	// Code">//GEN-BEGIN:initComponents
 	private void initComponents() {
-
+	//setting initials of scrollbars	
+		setLayout(new BorderLayout( ));
+		setSize(300,200);
+		JScrollBar hbar=new JScrollBar(JScrollBar.HORIZONTAL, 30, 20, 0, 500);
+        JScrollBar vbar=new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 500);
+        class MyAdjustmentListener implements AdjustmentListener {
+        	@Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                getContentPane().repaint();
+            }
+        }
+ 
+        hbar.addAdjustmentListener(new MyAdjustmentListener( ));
+        vbar.addAdjustmentListener(new MyAdjustmentListener( ));//ending the scrollbar settings
+		
 		patternsJPanel = new javax.swing.JPanel();
 		patternsJPanel.setBackground(BACKGROUNDCOLOR);
 
@@ -334,7 +382,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		setTitle(TITLE);
-		setResizable(false);
+		setResizable(true);
 
 		javax.swing.GroupLayout patternSelectionPanel = new javax.swing.GroupLayout(patternsJPanel);
 
@@ -346,11 +394,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		patternsJPanel.setToolTipText("");
 
 		String[] patternCategories = { "Core Movement", "Triggers", "Avoidance", "Composition" };
-		DefaultComboBoxModel<String> patternCathegoriestItems = new DefaultComboBoxModel<>();
+		DefaultComboBoxModel<String> patternCategoriestItems = new DefaultComboBoxModel<>();
 
-		Arrays.asList(patternCategories).stream().forEach(p -> patternCathegoriestItems.addElement(p.toString()));
+		Arrays.asList(patternCategories).stream().forEach(p -> patternCategoriestItems.addElement(p.toString()));
 
-		patternCathegorySelector = new JComboBox<String>(patternCathegoriestItems);
+		patternCategorySelector = new JComboBox<String>(patternCategoriestItems);
 
 		Arrays.asList(CoreMovementPatterns.values()).stream().forEach(p -> patternItems.addElement(p.toString()));
 
@@ -456,11 +504,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			}
 	});
 		
-		patternCathegorySelector.addActionListener(new ActionListener() {
+		patternCategorySelector.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String selectedItem = (String) patternCathegorySelector.getSelectedItem();
+				String selectedItem = (String) patternCategorySelector.getSelectedItem();
 				cleanPanels();
 				switch (selectedItem) {
 				case "Core Movement":
@@ -653,17 +701,25 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+//capturing the main panel
+		JPanel mainPanel = new JPanel();
+		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(mainPanel);
+		mainPanel.setLayout(layout);
+		getContentPane().add(mainPanel);
+		
 
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-		getContentPane().setLayout(layout);
-
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setViewportView(mainPanel);//end capturing
+			
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		TitledBorder patternCathegoryTile = BorderFactory.createTitledBorder(SELECT_PATTERN_CATHEGORY);
-		patternCathegoryTile.setTitlePosition(TitledBorder.RIGHT);
+		TitledBorder patternCategoryTile = BorderFactory.createTitledBorder(SELECT_PATTERN_CATEGORY);
+		patternCategoryTile.setTitlePosition(TitledBorder.RIGHT);
 
-		patternCathegorySelector.setBorder(patternCathegoryTile);
+		patternCategorySelector.setBorder(patternCategoryTile);
 
 		TitledBorder movementPatternTitle = BorderFactory.createTitledBorder("Movement Pattern");
 		movementPatternTitle.setTitlePosition(TitledBorder.RIGHT);
@@ -698,33 +754,63 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		variation.setBorder(variationTitle);
 
 		examples = new JTextArea();
+		//examples.setMaximumSize(new Dimension(20, 50));
 		examples.setLineWrap(true);
 		TitledBorder examplesTitle = BorderFactory.createTitledBorder("Examples and Known Uses");
 		examplesTitle.setTitlePosition(TitledBorder.RIGHT);
 		examples.setBorder(examplesTitle);
+		
 
 		relationships = new JTextArea();
 		relationships.setLineWrap(true);
 		TitledBorder relationshipsTitle = BorderFactory.createTitledBorder("Relationships");
 		relationshipsTitle.setTitlePosition(TitledBorder.RIGHT);
 		relationships.setBorder(relationshipsTitle);
-
+		
 		occurences = new JTextArea();
 		occurences.setLineWrap(true);
 		TitledBorder occuttencesTitle = BorderFactory.createTitledBorder("Occurences");
 		occuttencesTitle.setTitlePosition(TitledBorder.RIGHT);
 		occurences.setBorder(occuttencesTitle);
+		/*/testing
+		JScrollPane p6 = new JScrollPane();
+		p6.setViewportView(occurences);
+		JFrame frame = new JFrame();
+        frame.getContentPane().add(p6, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+		//testing
+		/*JFrame frame = new JFrame("JScrollPane Test");
+        frame.getContentPane().add(p6, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(new Dimension(240, 180));
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+*/
 
 		TitledBorder propertiesTitle = BorderFactory.createTitledBorder("Property Library");
 		propertiesTitle.setTitlePosition(TitledBorder.RIGHT);
 
 		JScrollPane p = new JScrollPane(this.propertyList);
+		/*/testing
+		//JScrollPane p1 = new JScrollPane(this.patternCategorySelector);
+		JScrollPane p8 = new JScrollPane(this.optionJPanel);
+		JFrame frame = new JFrame();
+        frame.getContentPane().add(p2, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        p8.setViewportView(optionJPanel);
+        //frame.setSize(new Dimension(240, 180));
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true); //end test
+        //setContentPane(patternsJPanel);
+		*/
 		p.setBorder(propertiesTitle);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-						.addComponent(patternCathegorySelector)
+						.addComponent(patternCategorySelector)
 
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(patternBoxSelector)
@@ -754,7 +840,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 				.addGroup(layout.createParallelGroup().addGroup(layout.createSequentialGroup()
 
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-						.addComponent(patternCathegorySelector)
+						.addComponent(patternCategorySelector)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(patternBoxSelector)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(locationPanel)
@@ -776,8 +862,21 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 								.addComponent(this.sendMission)
 								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(p))));
 
+		
+		/*/JScrollPane p1 = new JScrollPane(this.patternCategorySelector);
+		JScrollPane scroll = new JScrollPane(patternsJPanel);
+		JFrame frame = new JFrame();
+        frame.getContentPane().add(scroll, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        scroll.setViewportView(patternsJPanel);
+        scroll.add(patternBoxSelector);
+        //frame.setSize(new Dimension(240, 180));
+        //setContentPane(patternBoxSelector);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);*/
 		setBounds(0, 0, FRAME_INIT_WIDTH, FRAME_INIT_HEIGTH);
-		setVisible(true);
+		//setBounds(0, 0, 300, 200);
+		setVisible(false);
 		this.setResizable(true);
 	}
 
@@ -840,7 +939,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private LTLFormula loadMission() throws Exception {
 
 		String selectedIdem = (String) patternBoxSelector.getSelectedItem();
-		String patternCategory = (String) patternCathegorySelector.getSelectedItem();
+		String patternCategory = (String) patternCategorySelector.getSelectedItem();
 
 		LTLFormula computedltlformula = LTLFormula.TRUE;
 
