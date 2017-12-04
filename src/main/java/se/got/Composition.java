@@ -22,7 +22,7 @@ public enum Composition {
 	OR {
 		@Override
 		public LTLFormula getMission(LTLFormula f1, LTLFormula f2) throws Exception {
-			return LTLFormula.and(f1, f2);
+			return LTLFormula.or(f1, f2);
 		}
 
 		@Override

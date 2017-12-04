@@ -528,7 +528,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 					patternBoxSelector.setBorder(movementPatternTitle);
 					patternBoxSelector.setModel(patternItems);
-					intentText.setText(Composition.AND.getDescription());
 					locationPanel.setVisible(false);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);//edited
