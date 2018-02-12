@@ -1,7 +1,6 @@
 package se.got;
 
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +15,12 @@ import org.apache.http.message.BasicNameValuePair;
 
 public class MissionSender {
 
-	public void send(String mission) throws Exception {
+	public void send(String mission, String ip, String port) throws Exception {
 
 		System.out.println("Sending the mission using a POST request");
 
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpPost httppost = new HttpPost("http://127.0.0.1:13000");
+		HttpPost httppost = new HttpPost("http://"+ip+":"+port);
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		//String sentMission=URLEncoder.encode(mission, "UTF-8");

@@ -96,6 +96,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private static final int FRAME_INIT_WIDTH = 800;
 
 	private JPanel locationPanel;
+	private static JTextField ipTextField;
+	private static JTextField portTextField;
+	
+	
+	private JPanel remotePanel;
 	private static int FORMULA_COUNTER = 1;
 
 	private static Map<String, LTLFormula> formulae;
@@ -735,6 +740,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 					patternBoxSelector.setModel(patternItems);
 					locationPanel.setVisible(true);
+					remotePanel.setVisible(true);
 					ltlFormula.setVisible(true);
 					intentText.setVisible(true);
 					variation.setVisible(true);
@@ -753,6 +759,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					patternBoxSelector.setBorder(movementPatternTitle);
 					patternBoxSelector.setModel(patternItems);
 					locationPanel.setVisible(false);
+					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);
 					variation.setVisible(true);
@@ -771,6 +778,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					patternBoxSelector.setBorder(movementPatternTitle);
 					patternBoxSelector.setModel(patternItems);
 					locationPanel.setVisible(true);
+					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);
 					variation.setVisible(true);
@@ -789,6 +797,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					patternBoxSelector.setBorder(movementPatternTitle);
 					patternBoxSelector.setModel(patternItems);
 					locationPanel.setVisible(false);
+					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);//edited
 					variation.setVisible(false);
@@ -849,7 +858,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 				} else {
 					MissionSender sender = new MissionSender();
 					try {
-						sender.send(loadMission().accept(new LTLFormulaToStringVisitor()));
+						sender.send(loadMission().accept(new LTLFormulaToStringVisitor()), ipTextField.getText(), portTextField.getText());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -940,10 +949,27 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		patternBoxSelector.setBorder(movementPatternTitle);
 
+		remotePanel = new JPanel();
+		
+		ipTextField=new JTextField(40);
+		ipTextField.setText("ip of the robot");
+
+		portTextField=new JTextField(20);
+		portTextField.setText("13000");
+		
+		remotePanel.add(ipTextField);
+		remotePanel.add(portTextField);
+		
+		
+		TitledBorder remoteTitle = BorderFactory.createTitledBorder("Robot");
+		remoteTitle.setTitlePosition(TitledBorder.RIGHT);
+		remotePanel.setBorder(remoteTitle);
+		
 		locationPanel = new JPanel();
 		locations = new JTextField(40);
 		locations.setText(INIT_POSITION_MESSAGE);
 
+		
 		locationPanel.add(locations);
 		TitledBorder locationsTitle = BorderFactory.createTitledBorder("Locations");
 		locationsTitle.setTitlePosition(TitledBorder.RIGHT);
@@ -996,9 +1022,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-						.addComponent(patternCategorySelector)
-
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(remotePanel)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+						.addComponent(patternCategorySelector)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+
 						.addComponent(patternBoxSelector)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(locationPanel)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(ltlFormula)
@@ -1025,6 +1053,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
 				.addGroup(layout.createParallelGroup().addGroup(layout.createSequentialGroup()
 
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(remotePanel)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(patternCategorySelector)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
