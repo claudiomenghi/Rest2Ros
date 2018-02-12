@@ -122,8 +122,8 @@ CMD    /usr/sbin/sshd -D
 
 EXPOSE 13000
 EXPOSE 22
-EXPOSE 11311
-RUN apt-get install openssh-server --assume-yes
+#EXPOSE 11311
+RUN apt-get install openssh-server telnetd --assume-yes
 
         
     
