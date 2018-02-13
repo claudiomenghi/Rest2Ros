@@ -13,9 +13,9 @@ source ./devel/setup.bash
 export QT_X11_NO_MITSHM=1
 #export LC_NUMERIC=c
 
-if [ $MASTER_IP == "127.0.0.1" ]; then
-	roscore
-fi
+#if [ $MASTER_IP == "127.0.0.1" ]; then
+roscore
+#fi
 
 #chromium-browser
 
