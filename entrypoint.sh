@@ -6,6 +6,9 @@ export ROS_HOSTNAME=$LOCAL_IP
 export ROS_MASTER_URI="http://$MASTER_IP"":11311"
 export ROS_IP=$LOCAL_IP
 
+#export ROS_HOSTNAME=10.68.0.1
+#export ROS_MASTER_URI=http://10.68.0.1:11311
+
 ln /dev/null /dev/raw1394
 
 service ssh restart
