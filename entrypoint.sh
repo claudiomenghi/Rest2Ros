@@ -4,7 +4,6 @@ LOCAL_IP=$(/sbin/ifconfig wlan0 | grep 'inet addr' | cut -d: -f2 | awk '{ print 
 
 export ROS_HOSTNAME=$LOCAL_IP
 export ROS_MASTER_URI="http://$MASTER_IP"":11311"
-export ROS_IP=$LOCAL_IP
 
 #export ROS_HOSTNAME=10.68.0.1
 #export ROS_MASTER_URI=http://10.68.0.1:11311
