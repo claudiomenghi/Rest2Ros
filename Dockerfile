@@ -24,7 +24,7 @@ RUN apt-get install xorg openbox --assume-yes
 RUN apt-get install software-properties-common --assume-yes
 RUN add-apt-repository --yes ppa:xqms/opencv-nonfree
 RUN  apt-get update
-RUN apt-get install libopencv-nonfree-dev --assume-yes
+#RUN apt-get install libopencv-nonfree-dev --assume-yes
 RUN mkdir -p /catkin_ws/src
 
 # ----------------------------------------
@@ -107,6 +107,7 @@ WORKDIR ../
 RUN mkdir logs
 COPY target/spec-0.0.1-jar-with-dependencies.jar specificationmanager.jar
 COPY ugot.sh ugot.sh
+COPY ugotrest.sh ugotrest.sh
 COPY rest_python.py rest_python.py
 
 
@@ -123,7 +124,7 @@ CMD    /usr/sbin/sshd -D
 EXPOSE 13000
 EXPOSE 22
 #EXPOSE 11311
-RUN apt-get install openssh-server telnetd --assume-yes
+RUN apt-get install openssh-server telnet --assume-yes
 
         
     

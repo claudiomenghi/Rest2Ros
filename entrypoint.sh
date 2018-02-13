@@ -13,6 +13,9 @@ source ./devel/setup.bash
 export QT_X11_NO_MITSHM=1
 #export LC_NUMERIC=c
 
+if [ $MASTER_IP == "127.0.0.1"]; then
+	roscore
+fi
 
 #chromium-browser
 
@@ -31,10 +34,13 @@ export QT_X11_NO_MITSHM=1
 #roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true robot:=steel >> log.txt &
 #roslaunch flexbe_onboard behavior_onboard.launch &
 #roslaunch flexbe_widget behavior_ocs.launch &
-screen -S ugotrest -dm sh -c 'sh ugot.sh; echo $?; exec bash -i; python rest_python.py'
+screen -S ugotrest -dm sh -c 'sh ugotrest.sh;  exec bash -i;'
 #screen -S ugotrest1 -dm sh -c 'sh ugot.sh; echo $?; exec bash -i; python rest_python.py'
-screen -S ugot -dm sh -c 'sh ugot.sh; echo $?; exec bash -i; java -jar specificationmanager.jar'
 
+#IP=$(ifconfig eth0 | grep "inet addr" | cut -d ':' -f 2 | cut -d ' ' -f 1)
+screen -S ugotmissionspec -dm sh -c 'sh ugot.sh;  exec bash -i;'
+
+#screen -S ugotmissionspec -dm sh -c 'sh ugot.sh; echo $?; java -jar specificationmanager.jar; exec bash -i;'
 
 
 

@@ -38,8 +38,6 @@ package se.got;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -57,8 +55,10 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -68,24 +68,17 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.Scrollable;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import javax.swing.plaf.basic.BasicSliderUI.ScrollListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
+import javax.swing.plaf.ColorUIResource;
+import javax.swing.text.DefaultFormatter;
 
 import se.got.engine.EventSelectionValidator;
 import se.got.engine.EventStorage;
 import se.got.ltl.LTLFormula;
 import se.got.ltl.visitors.LTLFormulaToStringVisitor;
 import se.got.sel.Event;
-import se.got.sel.patterns.Pattern;
-import se.got.sel.scopes.Scope;
 
 public class Co4robotsGUI extends javax.swing.JFrame  {
 
@@ -103,7 +96,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private JPanel remotePanel;
 	private static int FORMULA_COUNTER = 1;
 
-	private static Map<String, LTLFormula> formulae;
+	private static Map<String, LTLFormula> formulae=new HashMap<>();
 
 	/**
 	 * 
@@ -118,7 +111,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private final static String MOVEMENT_PATTERN = "Movement Specification Pattern";
 	private final static String SEND_MISSION = "Send mission";
 	private final static String LOAD_MISSION = "Load mission";
-	private final static String LOAD_PROPERTY = "Load property";
 
 	private final static String SELECT_PATTERN_CATEGORY = "Select pattern category";
 
@@ -129,9 +121,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	private JTextArea ltlFormula;
 
 	private JTextArea intentText;
-	private JTextArea variation;
+	//private JTextArea variation;
 	private JTextArea examples;
-	private JTextArea relationships;
 	private JTextArea occurences;
 	private JComboBox<String> f1;
 	private JComboBox<String> f2;
@@ -141,16 +132,18 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 	public final static Color BACKGROUNDCOLOR = Color.WHITE;
 	private EventStorage fEvents;
 
-	private void initMappings() {
-	}
 
-	public Co4robotsGUI() {
+	public Co4robotsGUI(String ip, String port) {
+		super();
+		
+		this.getContentPane().setBackground(BACKGROUNDCOLOR);
+		
+		UIManager.put("ComboBox.background", new ColorUIResource(Color.WHITE));
 
 		patternItems = new DefaultComboBoxModel<>();
 
 		this.f1 = new JComboBox<String>();
 		this.f2 = new JComboBox<String>();
-		this.formulae = new HashMap<>();
 		String[] elements = { "" };
 		f1 = new JComboBox<>();
 
@@ -167,23 +160,20 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		propertyList.setBackground(Color.GRAY);
 
 		propertyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		initComponents();
-		
-		reset();
+		initComponents(ip,port);
+		System.out.println("GUI loaded");
 
-		initMappings();
-
-		// update initial SEL and mapping
-		updateSELandMapping();
 	}
 		
 	// Entry point
 
 	public static void main(String args[]) {
 		/* Create and display the form */
+		final String ip=args.length>0 ? args[0] :"127.0.0.1";
+		final String port=args.length>0 ? args[1] :"13000";
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				(new Co4robotsGUI()).showEditor();
+				(new Co4robotsGUI(ip,port)).showEditor();
 			}
 		});
 	}
@@ -193,125 +183,41 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		setVisible(true);
 	}
 
-	public JFrame getHostFrame() {
-		return this;
-	}
 
-	public void reset() {
-		Event.reset();
-		fEvents = new EventStorage();
 
-		fSelectedScope = null;
-		fSelectedPattern = null;
-		EventSelectionValidator.clearSelection();
-		fSEs.setEnabled(true);
-		fESpec.setSelected(false);
-		fEName.setSelected(true);
-		Event.EventStringMethod = Event.E_Name;
-	}
 
-	// event controller facet
 
-	public Event newEvent(String aName) {
-		Event Result = fEvents.newEvent(aName);
 
-		return Result;
-	}
-
-	public Event newEvent(String aName, String aSpecification) {
-		Event Result = fEvents.newEvent(aName, aSpecification);
-
-		return Result;
-	}
-
-	public Iterator<Event> iterator() {
-		return fEvents.iterator();
-	}
-
-	// Scope events
-
-	private Scope fSelectedScope;
-
-	public boolean isScopeEventSelectionPossible(Event aEvent) {
-		return EventSelectionValidator.isScopeEventSelectionPossible(this, aEvent);
-	}
-
-	public void updateScope() {
-
-		EventSelectionValidator.updateScopeEvents(fSelectedScope);
-
-		// update SEL and mapping
-		updateSELandMapping();
-	}
-
-	// Pattern events
-	private Pattern fSelectedPattern;
 
 
 	public boolean isPatternEventSelectionPossible(Event aEvent, Event aAltEvent) {
 		return EventSelectionValidator.isPatternEventSelectionPossible(this, aEvent, aAltEvent);
 	}
 
-	public void updatePattern() {
 
-		EventSelectionValidator.updatePatternEvents(fSelectedPattern);
 
-		// update SEL and mapping
-		updateSELandMapping();
-	}
 
-	private void appendToPane(JTextPane tp, String msg, Color c) {
-		StyleContext sc = StyleContext.getDefaultStyleContext();
-		AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
-
-		aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
-		aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
-
-		int len = tp.getDocument().getLength();
-		tp.setCaretPosition(len);
-		tp.setCharacterAttributes(aset, false);
-		tp.replaceSelection(msg);
-	}
-
-	// SEL expansion
-
-	private void updateSELandMapping() {
-		// StringBuilder sb = new StringBuilder();
-
-		if (fSelectedScope != null && fSelectedPattern != null) {
-			fSELP.setText("");
-			appendToPane(fSELP, fSelectedScope.getSpecificationAsSEL(), Color.GRAY);
-			appendToPane(fSELP, ", ", Color.RED);
-			appendToPane(fSELP, fSelectedPattern.getSpecificationAsSEL(), Color.DARK_GRAY);
-			appendToPane(fSELP, ".", Color.RED);
-
-			// fSELP.setText( sb.toString() );
-
-		}
-	}
 
 	/**
 	 * This method is called from within the constructor to initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is always
 	 * regenerated by the Form Editor.
 	 */
-	// <editor-fold defaultstate="collapsed" desc="Generated
-	// Code">//GEN-BEGIN:initComponents
-	private void initComponents() {
-	//setting initials of layout	
+	private void initComponents(String ip, String port) {
 		setLayout(new BorderLayout( ));
-		setSize(300,200);
-		JScrollBar hbar=new JScrollBar(JScrollBar.HORIZONTAL, 30, 20, 0, 500);
-        JScrollBar vbar=new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 500);
+		//setSize(700,200);
+		/*JScrollBar hbar=new JScrollBar(JScrollBar.HORIZONTAL, 30, 20, 0, 700);
+        JScrollBar vbar=new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 700);
         class MyAdjustmentListener implements AdjustmentListener {
         	@Override
             public void adjustmentValueChanged(AdjustmentEvent e) {
                 getContentPane().repaint();
             }
         }
- 
+ 		
         hbar.addAdjustmentListener(new MyAdjustmentListener( ));
         vbar.addAdjustmentListener(new MyAdjustmentListener( ));
+        */
 	//ending the initials	
 		patternsJPanel = new javax.swing.JPanel();
 		patternsJPanel.setBackground(BACKGROUNDCOLOR);
@@ -323,7 +229,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		fESpec = new javax.swing.JCheckBox();
 		this.sendMission = new javax.swing.JButton();
 		this.loadMission = new javax.swing.JButton();
-		this.loadProperty = new javax.swing.JButton();
 		jPanel5 = new javax.swing.JPanel();
 		jScrollPane1 = new javax.swing.JScrollPane();
 		fSELP = new javax.swing.JTextPane();
@@ -372,7 +277,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		String[] patternCategories = { "Core Movement", "Triggers", "Avoidance", "Composition" };
 		DefaultComboBoxModel<String> patternCategoriestItems = new DefaultComboBoxModel<>();
-
+		
 		Arrays.asList(patternCategories).stream().forEach(p -> patternCategoriestItems.addElement(p.toString()));
 
 		patternCategorySelector = new JComboBox<String>(patternCategoriestItems);
@@ -386,7 +291,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String selectedItem = (String) patternBoxSelector.getSelectedItem();
-				System.out.println(selectedItem);
 				if (selectedItem != null) {
 					switch (selectedItem) {
 
@@ -422,9 +326,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						//triggers
 					case "Wait":
 						intentText.setText(Triggers.WAIT.getDescription());
-						variation.setText(Triggers.WAIT.getVariations());
+						////variation.setText(Triggers.WAIT.getVariations());
 						examples.setText(Triggers.WAIT.getExamples());
-						relationships.setText(Triggers.WAIT.getRelationships());
 						occurences.setText(Triggers.WAIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -440,9 +343,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Instantaneous Reaction":
 						intentText.setText(Triggers.INSTANTANEOUS_REACTION.getDescription());
-						variation.setText(Triggers.INSTANTANEOUS_REACTION.getVariations());
+						////variation.setText(Triggers.INSTANTANEOUS_REACTION.getVariations());
 						examples.setText(Triggers.INSTANTANEOUS_REACTION.getExamples());
-						relationships.setText(Triggers.INSTANTANEOUS_REACTION.getRelationships());
 						occurences.setText(Triggers.INSTANTANEOUS_REACTION.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -459,9 +361,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Delayed Reaction":
 						intentText.setText(Triggers.DELAYED_REACTION.getDescription());
-						variation.setText(Triggers.DELAYED_REACTION.getVariations());
+						////variation.setText(Triggers.DELAYED_REACTION.getVariations());
 						examples.setText(Triggers.DELAYED_REACTION.getExamples());
-						relationships.setText(Triggers.DELAYED_REACTION.getRelationships());
 						occurences.setText(Triggers.DELAYED_REACTION.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -479,9 +380,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						//visits
 					case "Visit":
 						intentText.setText(CoreMovementPatterns.VISIT.getDescription());
-						variation.setText(CoreMovementPatterns.VISIT.getVariations());
+						////variation.setText(CoreMovementPatterns.VISIT.getVariations());
 						examples.setText(CoreMovementPatterns.VISIT.getExamples());
-						relationships.setText(CoreMovementPatterns.VISIT.getRelationships());
 						occurences.setText(CoreMovementPatterns.VISIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -497,9 +397,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Sequenced Visit":
 						intentText.setText(CoreMovementPatterns.SEQUENCED_VISIT.getDescription());
-						variation.setText(CoreMovementPatterns.SEQUENCED_VISIT.getVariations());
+						//variation.setText(CoreMovementPatterns.SEQUENCED_VISIT.getVariations());
 						examples.setText(CoreMovementPatterns.SEQUENCED_VISIT.getExamples());
-						relationships.setText(CoreMovementPatterns.SEQUENCED_VISIT.getRelationships());
 						occurences.setText(CoreMovementPatterns.SEQUENCED_VISIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -515,9 +414,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Ordered Visit":
 						intentText.setText(CoreMovementPatterns.ORDERED_VISIT.getDescription());
-						variation.setText(CoreMovementPatterns.ORDERED_VISIT.getVariations());
+						//variation.setText(CoreMovementPatterns.ORDERED_VISIT.getVariations());
 						examples.setText(CoreMovementPatterns.ORDERED_VISIT.getExamples());
-						relationships.setText(CoreMovementPatterns.ORDERED_VISIT.getRelationships());
 						occurences.setText(CoreMovementPatterns.ORDERED_VISIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -533,9 +431,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Strict Ordered Visit":
 						intentText.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getDescription());
-						variation.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getVariations());
+						//variation.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getVariations());
 						examples.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getExamples());
-						relationships.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getRelationships());
 						occurences.setText(CoreMovementPatterns.STRICT_ORDERED_VISIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -551,9 +448,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Fair Visit":
 						intentText.setText(CoreMovementPatterns.FAIR_VISIT.getDescription());
-						variation.setText(CoreMovementPatterns.FAIR_VISIT.getVariations());
+						//variation.setText(CoreMovementPatterns.FAIR_VISIT.getVariations());
 						examples.setText(CoreMovementPatterns.FAIR_VISIT.getExamples());
-						relationships.setText(CoreMovementPatterns.FAIR_VISIT.getRelationships());
 						occurences.setText(CoreMovementPatterns.FAIR_VISIT.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -570,9 +466,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						//patrolling
 					case "Patrolling":
 						intentText.setText(CoreMovementPatterns.PATROLLING.getDescription());
-						variation.setText(CoreMovementPatterns.PATROLLING.getVariations());
+						//variation.setText(CoreMovementPatterns.PATROLLING.getVariations());
 						examples.setText(CoreMovementPatterns.PATROLLING.getExamples());
-						relationships.setText(CoreMovementPatterns.PATROLLING.getRelationships());
 						occurences.setText(CoreMovementPatterns.PATROLLING.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -588,9 +483,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Sequenced Patrolling":
 						intentText.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getDescription());
-						variation.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getVariations());
+						//variation.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getVariations());
 						examples.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getExamples());
-						relationships.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getRelationships());
 						occurences.setText(CoreMovementPatterns.SEQUENCED_PATROLLING.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -606,9 +500,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Ordered Patrolling":
 						intentText.setText(CoreMovementPatterns.ORDERED_PATROLLING.getDescription());
-						variation.setText(CoreMovementPatterns.ORDERED_PATROLLING.getVariations());
+						//variation.setText(CoreMovementPatterns.ORDERED_PATROLLING.getVariations());
 						examples.setText(CoreMovementPatterns.ORDERED_PATROLLING.getExamples());
-						relationships.setText(CoreMovementPatterns.ORDERED_PATROLLING.getRelationships());
 						occurences.setText(CoreMovementPatterns.ORDERED_PATROLLING.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -624,9 +517,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Strict Ordered Patrolling":
 						intentText.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getDescription());
-						variation.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getVariations());
+						////variation.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getVariations());
 						examples.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getExamples());
-						relationships.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getRelationships());
 						occurences.setText(CoreMovementPatterns.STRICT_ORDERED_PATROLLING.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -642,9 +534,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Fair Patrolling":
 						intentText.setText(CoreMovementPatterns.FAIR_PATROLLING.getDescription());
-						variation.setText(CoreMovementPatterns.FAIR_PATROLLING.getVariations());
+						////variation.setText(CoreMovementPatterns.FAIR_PATROLLING.getVariations());
 						examples.setText(CoreMovementPatterns.FAIR_PATROLLING.getExamples());
-						relationships.setText(CoreMovementPatterns.FAIR_PATROLLING.getRelationships());
 						occurences.setText(CoreMovementPatterns.FAIR_PATROLLING.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -662,9 +553,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						//past avoidance
 					case "Past Avoidance":
 						intentText.setText(Avoidance.PAST_AVOIDANCE.getDescription());
-						variation.setText(Avoidance.PAST_AVOIDANCE.getVariations());
+						//variation.setText(Avoidance.PAST_AVOIDANCE.getVariations());
 						examples.setText(Avoidance.PAST_AVOIDANCE.getExamples());
-						relationships.setText(Avoidance.PAST_AVOIDANCE.getRelationships());
 						occurences.setText(Avoidance.PAST_AVOIDANCE.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -680,9 +570,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Future Avoidance":
 						intentText.setText(Avoidance.FUTURE_AVOIDANCE.getDescription());
-						variation.setText(Avoidance.FUTURE_AVOIDANCE.getVariations());
+						//variation.setText(Avoidance.FUTURE_AVOIDANCE.getVariations());
 						examples.setText(Avoidance.FUTURE_AVOIDANCE.getExamples());
-						relationships.setText(Avoidance.FUTURE_AVOIDANCE.getRelationships());
 						occurences.setText(Avoidance.FUTURE_AVOIDANCE.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -698,9 +587,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 						break;
 					case "Global Avoidance":
 						intentText.setText(Avoidance.GLOBAL_AVOIDANCE.getDescription());
-						variation.setText(Avoidance.GLOBAL_AVOIDANCE.getVariations());
+						//variation.setText(Avoidance.GLOBAL_AVOIDANCE.getVariations());
 						examples.setText(Avoidance.GLOBAL_AVOIDANCE.getExamples());
-						relationships.setText(Avoidance.GLOBAL_AVOIDANCE.getRelationships());
 						occurences.setText(Avoidance.GLOBAL_AVOIDANCE.getOccurrences());
 						f1.removeAllItems();
 						f2.removeAllItems();
@@ -743,9 +631,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					remotePanel.setVisible(true);
 					ltlFormula.setVisible(true);
 					intentText.setVisible(true);
-					variation.setVisible(true);
+					//variation.setVisible(true);
 					examples.setVisible(true);
-					relationships.setVisible(true);
 					occurences.setVisible(true);
 
 					break;
@@ -762,9 +649,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);
-					variation.setVisible(true);
+					//variation.setVisible(true);
 					examples.setVisible(true);
-					relationships.setVisible(true);
 					occurences.setVisible(true);
 
 					break;
@@ -781,9 +667,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);
-					variation.setVisible(true);
+					//variation.setVisible(true);
 					examples.setVisible(true);
-					relationships.setVisible(true);
 					occurences.setVisible(true);
 
 					break;
@@ -800,9 +685,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 					remotePanel.setVisible(true);
 					intentText.setVisible(true);
 					ltlFormula.setVisible(true);//edited
-					variation.setVisible(false);
+					//variation.setVisible(false);
 					examples.setVisible(false);
-					relationships.setVisible(false);
 					occurences.setVisible(false);
 
 					break;
@@ -831,28 +715,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		optionJPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
 
-		fEName.setSelected(true);
-		fEName.setText(EVENTNAMES);
-		fEName.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				fENameActionPerformed(evt);
-			}
-		});
-
-		fESpec.setText(EVENTSPECIFICATION);
-		fESpec.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				fESpecActionPerformed(evt);
-			}
-		});
-
 		this.sendMission.setText(SEND_MISSION);
 		this.loadMission.setText(LOAD_MISSION);
-		this.loadProperty.setText(LOAD_PROPERTY);
-		
+	
 		this.sendMission.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				System.out.println();
 				if (locations.getText().equals(INIT_POSITION_MESSAGE)) {
 					JOptionPane.showMessageDialog(null, "Insert the set of locations to be considered");
 				} else {
@@ -869,7 +736,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		this.loadMission.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 
-				System.out.println();
 				if (locations.getText().equals(INIT_POSITION_MESSAGE)) {
 					JOptionPane.showMessageDialog(null, "Insert the set of locations to be considered");
 				} else {
@@ -885,27 +751,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		});
 
-		this.loadProperty.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
 
-				if (locations.getText().equals(INIT_POSITION_MESSAGE)) {
-					JOptionPane.showMessageDialog(null, "Insert the set of locations to be considered");
-				} else {
-
-					LTLFormula property;
-					try {
-						property = loadMission();
-
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				}
-
-			}
-
-		});
 
 		optionJPanel.setLayout(jPanel3Layout);
 
@@ -913,7 +759,6 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 
 		BufferedImage myPicture;
 		try {
-			System.out.println(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
 			myPicture = ImageIO
 					.read(Co4robotsGUI.class.getClassLoader().getResourceAsStream("images/co4robotsLogo.png"));
 
@@ -925,6 +770,7 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		}
 //capturing the main panel
 		JPanel mainPanel = new JPanel();
+		mainPanel.setBackground(BACKGROUNDCOLOR);
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(mainPanel);
 		mainPanel.setLayout(layout);
 		getContentPane().add(mainPanel);
@@ -939,36 +785,37 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 
-		TitledBorder patternCategoryTile = BorderFactory.createTitledBorder(SELECT_PATTERN_CATEGORY);
-		patternCategoryTile.setTitlePosition(TitledBorder.RIGHT);
+		patternCategorySelector.setBorder(javax.swing.BorderFactory.createTitledBorder(SELECT_PATTERN_CATEGORY));
 
-		patternCategorySelector.setBorder(patternCategoryTile);
 
-		TitledBorder movementPatternTitle = BorderFactory.createTitledBorder("Movement Pattern");
-		movementPatternTitle.setTitlePosition(TitledBorder.RIGHT);
-
-		patternBoxSelector.setBorder(movementPatternTitle);
+		patternBoxSelector.setBorder(javax.swing.BorderFactory.createTitledBorder("Movement Pattern"));
 
 		remotePanel = new JPanel();
 		
-		ipTextField=new JTextField(40);
-		ipTextField.setText("ip of the robot");
+		ipTextField=new JTextField(15);
+		ipTextField.setText(ip);
 
-		portTextField=new JTextField(20);
-		portTextField.setText("13000");
+		portTextField=new JTextField(5);
+		portTextField.setText(port);
 		
 		remotePanel.add(ipTextField);
 		remotePanel.add(portTextField);
 		
 		
-		TitledBorder remoteTitle = BorderFactory.createTitledBorder("Robot");
-		remoteTitle.setTitlePosition(TitledBorder.RIGHT);
-		remotePanel.setBorder(remoteTitle);
-		
+		//TitledBorder remoteTitle = BorderFactory.createTitledBorder("Robot");
+		//remoteTitle.setTitlePosition(TitledBorder.RIGHT);
+		remotePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Robot"));
+		remotePanel.setBackground(BACKGROUNDCOLOR);
 		locationPanel = new JPanel();
-		locations = new JTextField(40);
-		locations.setText(INIT_POSITION_MESSAGE);
 
+		java.util.regex.Pattern commaseparated = java.util.regex.Pattern
+		        .compile("(([a-z][a-z1-9]*),)*.([a-z][a-z1-9]*)*");
+
+		locations = new JTextField(40);
+		
+		    
+		locations.setText(INIT_POSITION_MESSAGE);
+		locationPanel.setBackground(BACKGROUNDCOLOR);
 		
 		locationPanel.add(locations);
 		TitledBorder locationsTitle = BorderFactory.createTitledBorder("Locations");
@@ -987,11 +834,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		intentTitle.setTitlePosition(TitledBorder.RIGHT);
 		intentText.setBorder(intentTitle);
 
-		variation = new JTextArea();
-		variation.setLineWrap(true);
+		//variation = new JTextArea();
+		//variation.setLineWrap(true);
 		TitledBorder variationTitle = BorderFactory.createTitledBorder("Variations");
 		variationTitle.setTitlePosition(TitledBorder.RIGHT);
-		variation.setBorder(variationTitle);
+		//variation.setBorder(variationTitle);
 
 		examples = new JTextArea();
 		examples.setLineWrap(true);
@@ -1000,11 +847,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		examples.setBorder(examplesTitle);
 		
 
-		relationships = new JTextArea();
-		relationships.setLineWrap(true);
 		TitledBorder relationshipsTitle = BorderFactory.createTitledBorder("Relationships");
 		relationshipsTitle.setTitlePosition(TitledBorder.RIGHT);
-		relationships.setBorder(relationshipsTitle);
 		
 		occurences = new JTextArea();
 		occurences.setLineWrap(true);
@@ -1017,110 +861,64 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 		propertiesTitle.setTitlePosition(TitledBorder.RIGHT);
 
 		JScrollPane p = new JScrollPane(this.propertyList);
+		p.setBackground(BACKGROUNDCOLOR);
 		p.setBorder(propertiesTitle);
-		layout.setHorizontalGroup(layout.createSequentialGroup()
+		
+		layout.createSequentialGroup();
+		
+	
+		locationPanel.setBackground(BACKGROUNDCOLOR);
+		patternCategorySelector.setBackground(BACKGROUNDCOLOR);
+		layout.setHorizontalGroup(
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(jPanelLogo)
+				.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(remotePanel)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-						.addComponent(patternCategorySelector)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-
-						.addComponent(patternBoxSelector)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(patternCategorySelector)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(patternBoxSelector)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(locationPanel)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(ltlFormula)
-
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(intentText)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(variation)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(examples)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(relationships)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(occurences)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(f1)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(f2)
 
 				).addGroup(layout.createParallelGroup().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-
-						.addComponent(this.loadProperty)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(this.loadMission)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(this.sendMission)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(p)))
 
-		);
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(jPanelLogo)
+		));
+
+	layout.setVerticalGroup(layout.createSequentialGroup().addComponent(jPanelLogo)
 				.addGroup(layout.createParallelGroup().addGroup(layout.createSequentialGroup()
-
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(remotePanel)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+						.addComponent(remotePanel)
 						.addComponent(patternCategorySelector)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 						.addComponent(patternBoxSelector)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(locationPanel)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(ltlFormula)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(intentText)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(variation)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(examples)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(relationships)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(occurences)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(f1)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(f2))
-
+						.addComponent(locationPanel)
+						.addComponent(ltlFormula)
+						.addComponent(intentText)
+						.addComponent(f1)
+						.addComponent(f2))
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 								.addComponent(this.loadMission)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
-								.addComponent(this.loadProperty)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
 								.addComponent(this.sendMission)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)).addComponent(p))));
+								.addComponent(p))));
 
-		
+	f1.setVisible(false);
+	f2.setVisible(false);
 		
 		setBounds(0, 0, FRAME_INIT_WIDTH, FRAME_INIT_HEIGTH);
 		setVisible(false);
+		this.setBackground(BACKGROUNDCOLOR);
+		this.getContentPane().setBackground(BACKGROUNDCOLOR);
 		this.setResizable(true);
 	}
-
-	private void fENameActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fENameActionPerformed
-		// TODO add your handling code here:
-
-		if (!fEName.isSelected()) {
-			fESpec.setSelected(true);
-			Event.EventStringMethod = Event.E_Spec;
-		} else {
-			if (fESpec.isSelected())
-				Event.EventStringMethod = Event.E_NameAndSpec;
-			else
-				Event.EventStringMethod = Event.E_Name;
-		}
-		updateSELandMapping();
-		repaint();
-	}// GEN-LAST:event_fENameActionPerformed
-
-	private void fESpecActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_fESpecActionPerformed
-		// TODO add your handling code here:
-
-		if (!fESpec.isSelected()) {
-			fEName.setSelected(true);
-			Event.EventStringMethod = Event.E_Name;
-		} else {
-			if (fEName.isSelected())
-				Event.EventStringMethod = Event.E_NameAndSpec;
-			else
-				Event.EventStringMethod = Event.E_Spec;
-		}
-		updateSELandMapping();
-		repaint();
-	}// GEN-LAST:event_fESpecActionPerformed
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
 	private javax.swing.JButton sendMission;
 	private javax.swing.JButton loadMission;
-	private javax.swing.JButton loadProperty;
 	private javax.swing.JButton fEE;
 	private javax.swing.JCheckBox fEName;
 	private javax.swing.JCheckBox fESpec;
@@ -1157,9 +955,8 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			// computedltlformula = p2.getMission(selectedLocations);
 			
 			intentText.setText(p2.getDescription());
-			variation.setText(p2.getVariations());
+			//variation.setText(p2.getVariations());
 			examples.setText(p2.getExamples());
-			relationships.setText(p2.getRelationships());
 			occurences.setText(p2.getOccurrences());
 
 			computedltlformula = p2.getMission(formulae.get((String) f1.getSelectedItem()),
@@ -1182,12 +979,11 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			computedltlformula = p.getMission(selectedLocations);
 			intentText.setText(p.getDescription());
 
-			variation.setText(p.getVariations());
+			//variation.setText(p.getVariations());
 
 			examples.setText(p.getExamples());
 
-			relationships.setText(p.getRelationships());
-
+	
 			occurences.setText(p.getOccurrences());
 			ltlFormula.setText(computedltlformula.accept(new LTLFormulaToStringVisitor()));
 
@@ -1205,15 +1001,14 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 			CoreMovementPatterns p1 = CoreMovementPatterns.valueOf(selectedIdem.toUpperCase().replaceAll(" ", "_"));
 			computedltlformula = p1.getMission(selectedLocations);
 			intentText.setText(p1.getDescription());
-			variation.setText(p1.getVariations());
+			//variation.setText(p1.getVariations());
 			examples.setText(p1.getExamples());
-			relationships.setText(p1.getRelationships());
 			occurences.setText(p1.getOccurrences());
 
 			ltlFormula.setText(computedltlformula.accept(new LTLFormulaToStringVisitor()));
 
-			formulae.put(FORMULA_COUNTER + " - " + (String) patternBoxSelector.getSelectedItem() + "(" + locations.getText()
-					+ ")", computedltlformula);
+			//formulae.put(FORMULA_COUNTER + " - " + (String) patternBoxSelector.getSelectedItem() + "(" + locations.getText()
+			//		+ ")", computedltlformula);
 			array = new ArrayList<String>(formulae.keySet());
 			d = new String[array.size()];
 			array.toArray(d);
@@ -1251,9 +1046,31 @@ public class Co4robotsGUI extends javax.swing.JFrame  {
 ;
 		intentText.setText("");
 		ltlFormula.setText("");
-		variation.setText("");
+		//variation.setText("");
 		examples.setText("");
-		relationships.setText("");
 		occurences.setText("");
+	}
+	public class RegexPatternFormatter extends DefaultFormatter {
+
+		  protected java.util.regex.Matcher matcher;
+
+		  public RegexPatternFormatter(java.util.regex.Pattern regex) {
+		    setOverwriteMode(false);
+		    matcher = regex.matcher(""); // create a Matcher for the regular
+		                   // expression
+		  }
+
+		  public Object stringToValue(String string) throws java.text.ParseException {
+		    if (string == null)
+		      return null;
+		    matcher.reset(string); // set 'string' as the matcher's input
+
+		    if (!matcher.matches()) // Does 'string' match the regular expression?
+		      throw new java.text.ParseException("does not match regex", 0);
+
+		    // If we get this far, then it did match.
+		    return super.stringToValue(string); // will honor the 'valueClass'
+		                      // property
+		  }
 	}
 }

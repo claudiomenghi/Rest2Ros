@@ -50,8 +50,12 @@ class Handler(BaseHTTPRequestHandler):
 		pub.publish(missions[0])
 		print 'message sent in ROS'
 
+        	self.send_response(200)
+        	self.end_headers()
+        
 		#self._set_header()
-        #	self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
+        	#self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
+        #self.wfile.write('\n')
 		#if data != None:
 		#	print "Publishing data %s" %(data)
 		#	self.cmd_vel.publish(data)
@@ -63,7 +67,7 @@ class Rest:
 		rospy.init_node('Receiver', anonymous=False)
 		# What function to call when you ctrl + c    
 		self.cmd_vel = rospy.Publisher('local_mission_robot', String, queue_size=100, latch=True)
-		pub.publish("rest component activated")
+		self.cmd_vel.publish("rest component activated")
 	def run(self):
 		print 'starting the rest service'
 		port=13000
