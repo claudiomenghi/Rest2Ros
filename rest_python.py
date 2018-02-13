@@ -25,68 +25,72 @@ from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
 
 class Handler(BaseHTTPRequestHandler):
-	#def __init__(self, request, client_address, socketServer):
-	#	print 'request received'
-        	
-	#	pass
-	def _set_header(self):
-		self.send_response(200)
-		self.send_header('Content-type', 'text/html')
-		self.end_headers()
-	def do_GET(self):
-		self._set_headers()
-		self.wfile.write("<html><body><h1>GET! " + self.image.getImage() + " </h1></body></html>")
-	def do_HEAD(self):
-		self._set_headers()
-	def do_POST(self):
-		content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-        	post_data = self.rfile.read(content_length) # <--- Gets the data itself
+    #def __init__(self, request, client_address, socketServer):
+    #   print 'request received'
+            
+    #   pass
+    def _set_header(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+    def do_GET(self):
+        self._set_headers()
+        self.wfile.write("<html><body><h1>GET! " + self.image.getImage() + " </h1></body></html>")
+    def do_HEAD(self):
+        self._set_headers()
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+            post_data = self.rfile.read(content_length) # <--- Gets the data itself
+# while not ros is shutdown
+        postvars=parse_qs(post_data, keep_blank_values=1)
+        missions=postvars['mission']
+        print 'post request received %s' %(missions[0])
 
-		postvars=parse_qs(post_data, keep_blank_values=1)
-		missions=postvars['mission']
-		print 'post request received %s' %(missions[0])
+        pub=rospy.Publisher('local_mission_robot',String, queue_size=100)
+        pub.publish(missions[0])
+        print 'message sent in ROS'
 
-		pub=rospy.Publisher('local_mission_robot',String, queue_size=10)
-		pub.publish(missions[0])
-		print 'message sent in ROS'
-
-        	self.send_response(200)
-        	self.end_headers()
+            self.send_response(200)
+            self.end_headers()
         
-		#self._set_header()
-        	#self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
+        #self._set_header()
+            #self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
         #self.wfile.write('\n')
-		#if data != None:
-		#	print "Publishing data %s" %(data)
-		#	self.cmd_vel.publish(data)
+        #if data != None:
+        #   print "Publishing data %s" %(data)
+        #   self.cmd_vel.publish(data)
 
 
 class Rest:
 
-	def __init__(self):
-		rospy.init_node('Receiver', anonymous=False)
-		# What function to call when you ctrl + c    
-		self.cmd_vel = rospy.Publisher('local_mission_robot', String, queue_size=100, latch=True)
-		self.cmd_vel.publish("rest component activated")
-	def run(self):
-		print 'starting the rest service'
-		port=13000
-		server_address = ('', port)
-		httpd = HTTPServer(('127.0.0.1', port),Handler)
-		print 'Starting httpd...'
-		try:
-			httpd.serve_forever()
-		except KeyboardInterrupt:
-			pass
+    def __init__(self):
+        rospy.init_node('Receiver', anonymous=False)
+        # What function to call when you ctrl + c    
+        self.cmd_vel = rospy.Publisher('local_mission_robot', String, queue_size=100, latch=True)
+        self.cmd_vel.publish("rest component activated")
+    def run(self):
+        while not rospy.is_shutdown():
+            print 'starting the rest service'
+            port=13000
+            server_address = ('', port)
+            httpd = HTTPServer(('127.0.0.1', port),Handler)
+            print 'Starting httpd...'
+            try:
+                httpd.serve_forever()
+            except KeyboardInterrupt:
+                pass
+        except rospy.ROSInterruptException:
+            pass
 
 
 
-	
+
+    
 
 if __name__ == "__main__":
-	from sys import argv
-	rest=Rest()
-	if len(argv) == 2:
-		rest.run()
-	else:
-		rest.run()
+    from sys import argv
+    rest=Rest()
+    if len(argv) == 2:
+        rest.run()
+    else:
+        rest.run()
