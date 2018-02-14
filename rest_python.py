@@ -66,7 +66,7 @@ class Rest:
 	def __init__(self):
 		rospy.init_node('Receiver', anonymous=False)
 		# What function to call when you ctrl + c    
-		self.cmd_vel = rospy.Publisher('local_mission_robot', String, queue_size=100, latch=True)
+		self.cmd_vel = rospy.Publisher('local_mission', String, queue_size=100, latch=True)
 		self.cmd_vel.publish("rest component activated")
 	def run(self):
 		try:
