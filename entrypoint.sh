@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#<<<<<<< HEAD
+#=======
+LOCAL_IP=$(/sbin/ifconfig wlan0 | grep 'inet addr' | cut -d: -f2 | awk '{ print $1}')
+
+export ROS_HOSTNAME=$LOCAL_IP
+export ROS_MASTER_URI="http://$MASTER_IP"":11311"
+#>>>>>>> 76580ad91059d7d539e501349850ef77dbcd0cd0
 
 echo "export ROS_HOSTNAME=127.0.0.1">>~/.profile
 echo "export ROS_MASTER_URI=http://$MASTER_IP:11311" >>~/.profile
