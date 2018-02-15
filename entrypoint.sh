@@ -1,10 +1,12 @@
 #!/bin/bash
 
-export ROS_HOSTNAME=$MASTER_IP
-export ROS_MASTER_URI="http://$MASTER_IP"":11311"
 
-#export ROS_HOSTNAME=10.68.0.1
-#export ROS_MASTER_URI=http://10.68.0.1:11311
+echo "export ROS_HOSTNAME=127.0.0.1">>~/.profile
+echo "export ROS_MASTER_URI=http://$MASTER_IP:11311" >>~/.profile
+
+. ~/.profile
+export ROS_HOSTNAME=127.0.0.1
+export ROS_MASTER_URI=http://10.68.0.1:11311
 
 ln /dev/null /dev/raw1394
 

@@ -106,14 +106,15 @@ public enum CoreMovementPatterns {
 		@Override
 		public LTLFormula getMission(String[] locations) {
 
-			LTLFormula f = CoreMovementPatterns.VISIT.getMission(locations);
+			LTLFormula f = CoreMovementPatterns.SEQUENCED_VISIT.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
 
-			for (int index = 0; index < loc.size() - 1; index++) {
+			
+			for (int index = loc.size() - 1; index > 0; index--) {
 				f1 = LTLFormula.and(f1, new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
-						new LTLIPropositionalAtom(loc.get(index + 1))));
+						new LTLIPropositionalAtom(loc.get(index-1))));
 			}
 			return new LTLConjunction(f, f1);
 		}
@@ -156,11 +157,20 @@ public enum CoreMovementPatterns {
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
 
-			for (int index = 0; index < loc.size(); index++) {
-				f1 = LTLFormula.and(f1, new LTLIGlobally(new LTLIImplies(new LTLIPropositionalAtom(loc.get(index)),
-						new LTLNext(new LTLIGlobally(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))))))
-
-	));
+			for (int index = 0; index < loc.size()-1; index++) {
+				f1 = LTLFormula.and(f1, 
+						new LTLIGlobally(
+								new LTLIImplies(
+										new LTLIPropositionalAtom(loc.get(index)),
+										new LTLNext(
+												new LTLIUntil(
+														new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
+														new LTLIPropositionalAtom(loc.get(index+1))
+														)
+												)
+										)
+								)
+					);
 			}
 			return new LTLConjunction(f, f1);
 		}
@@ -327,20 +337,17 @@ public enum CoreMovementPatterns {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = new LTLIGlobally(CoreMovementPatterns.ORDERED_VISIT.getMission(locations));
+			LTLFormula f = CoreMovementPatterns.SEQUENCED_PATROLLING.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
-			LTLFormula f2 = LTLFormula.TRUE;
 
-			for (int index = 0; index < loc.size() - 1; index++) {
-				f1 = LTLFormula.and(f1,
-						new LTLIGlobally(new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
-								new LTLIPropositionalAtom(loc.get(index + 1)))));
-				f2 = LTLFormula.and(f2, new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
-						new LTLIPropositionalAtom(loc.get(index + 1))));
+			
+			for (int index = loc.size() - 1; index > 0; index--) {
+				f1 = LTLFormula.and(f1, new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
+						new LTLIPropositionalAtom(loc.get(index-1))));
 			}
-			return new LTLConjunction(f, new LTLConjunction(f2, f1));
+			return new LTLConjunction(f, f1);
 		}
 
 		@Override
@@ -376,22 +383,27 @@ public enum CoreMovementPatterns {
 
 		@Override
 		public LTLFormula getMission(String[] locations) {
-			LTLFormula f = new LTLIGlobally(CoreMovementPatterns.ORDERED_VISIT.getMission(locations));
+			LTLFormula f = CoreMovementPatterns.ORDERED_PATROLLING.getMission(locations);
 
 			List<String> loc = Arrays.asList(locations);
 			LTLFormula f1 = LTLFormula.TRUE;
-			LTLFormula f2 = LTLFormula.TRUE;
 
-			for (int index = 0; index < loc.size() - 1; index++) {
-				f1 = LTLFormula.and(f1,
-						new LTLIGlobally(new LTLIImplies(LTLFormula.and(new LTLIPropositionalAtom(loc.get(index)),
-								new LTLINegation(new LTLIPropositionalAtom(loc.get(index))
-
-								)), new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))), new LTLIPropositionalAtom(loc.get(index + 1))))));
-				f2 = LTLFormula.and(f2, new LTLIUntil(new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
-						new LTLIPropositionalAtom(loc.get(index + 1))));
+			for (int index = 0; index < loc.size()-1; index++) {
+				f1 = LTLFormula.and(f1, 
+						new LTLIGlobally(
+								new LTLIImplies(
+										new LTLIPropositionalAtom(loc.get(index)),
+										new LTLNext(
+												new LTLIUntil(
+														new LTLINegation(new LTLIPropositionalAtom(loc.get(index))),
+														new LTLIPropositionalAtom(loc.get(index+1))
+														)
+												)
+										)
+								)
+					);
 			}
-			return new LTLConjunction(f, new LTLConjunction(f2, f1));
+			return new LTLConjunction(f, f1);
 		}
 
 		@Override

@@ -40,7 +40,7 @@ class Handler(BaseHTTPRequestHandler):
         self._set_headers()
     def do_POST(self):
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-            post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        post_data = self.rfile.read(content_length) # <--- Gets the data itself
 # while not ros is shutdown
         postvars=parse_qs(post_data, keep_blank_values=1)
         missions=postvars['mission']
@@ -50,8 +50,8 @@ class Handler(BaseHTTPRequestHandler):
         pub.publish(missions[0])
         print 'message sent in ROS'
 
-            self.send_response(200)
-            self.end_headers()
+        self.send_response(200)
+        self.end_headers()
         
         #self._set_header()
             #self.wfile.write("<html><body><h1>POST! " + str(post_data) + " </h1></body></html>")
