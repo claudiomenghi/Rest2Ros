@@ -40,11 +40,11 @@ class Request_Handler(BaseHTTPRequestHandler):
 		post_data = self.rfile.read(content_length) # <--- Gets the data itself
 		postvars=parse_qs(post_data, keep_blank_values=1)
 		missions=postvars['mission']
-		print 'new local mission received %s' %(missions[0])
+		print ('new local mission received %s' %(missions[0]))
 
 		pub=rospy.Publisher('local_mission_robot',String, queue_size=100)
 		pub.publish(missions[0])
-		print 'local mission sent in ROS'
+		print ('local mission sent in ROS')
 
 		self.send_response(200)
 		self.end_headers()
