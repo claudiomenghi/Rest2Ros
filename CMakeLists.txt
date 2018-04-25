@@ -10,7 +10,7 @@ project(ugot)
 find_package(catkin REQUIRED 
 					COMPONENTS 
 					rospy 
-					genmsg
+					#genmsg
 					actionlib_msgs 
 					actionlib)
 
@@ -62,7 +62,7 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(DEPENDENCIES actionlib_msgs)
+#generate_messages(DEPENDENCIES actionlib_msgs)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
