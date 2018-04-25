@@ -1,3 +1,4 @@
+#!/usr/bin/python
 ######################################################################
 # This component receives missions from Rest and converts them into
 # ros messages
@@ -30,6 +31,7 @@ class Rest:
 		# What function to call when you ctrl + c    
 		self.cmd_vel = rospy.Publisher('local_mission', String, queue_size=100, latch=True)
 		self.cmd_vel.publish("rest component activated")
+
 	def run(self):
 		try:
 			while not rospy.is_shutdown():
