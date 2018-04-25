@@ -38,7 +38,8 @@ class Rest:
 				#roslib.load_manifest("rosparam")
 				#port = rospy.get_param('port')   
 				port=13000
-                print 'Waiting for a new mission on the port ', str(port)
+                print 'Waiting for a new mission on the port '
+                print str(port)
                 
 				server_address = ('', port)
 				httpd = HTTPServer(('127.0.0.1', port),Request_Handler)
