@@ -13,7 +13,6 @@ import numpy as np
 import sys
 import unicodedata
 import roslib
-roslib.load_manifest("rosparam")
 import rosparam
 
 from sys import getsizeof
@@ -34,8 +33,9 @@ class Rest:
 	def run(self):
 		try:
 			while not rospy.is_shutdown():
-				port = rospy.get_param('port')   
-				#port=13000
+				#roslib.load_manifest("rosparam")
+				#port = rospy.get_param('port')   
+				port=13000
                 print 'Waiting for a new mission on the port ', str(port)
                 
 				server_address = ('', port)
