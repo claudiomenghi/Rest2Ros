@@ -1,0 +1,4 @@
+#parameters for the communication_manager node
+communication_manager:
+    # The port that is used to receive the local missions
+    port: 13000
