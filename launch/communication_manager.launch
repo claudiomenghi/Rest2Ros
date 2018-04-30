@@ -1,7 +1,7 @@
 <launch>
 
 
-	<node pkg="ugot" type="my_node" name="communication_manager" output="screen">
+	<node pkg="ugot" type="communication_manager" name="communication_manager" output="screen">
 		<param name="port" value="13000" />
 		<param name="message" value="local_mission" />
 	</node>
