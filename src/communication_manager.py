@@ -35,8 +35,8 @@ class Rest:
 	def run(self):
 		while not rospy.is_shutdown():
 				#roslib.load_manifest("rosparam")
-				#port = rospy.get_param('port')   
-				port=13000
+				port = rospy.get_param('port')   
+				#port=13000
                 		
 				server_address = ('', port)
 				httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
