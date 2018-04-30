@@ -11,7 +11,7 @@ It can be used for example in combination with
 ```git clone https://github.com/claudiomenghi/Rest2Ros.git```
 
 * Compile your carkin workspace <br/>
-```catkin_make```
+```catkin\_make```
 
 * Source the workspace <br/>
 ```source devel/setup.bash```
