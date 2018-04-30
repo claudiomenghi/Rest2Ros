@@ -10,12 +10,12 @@ It can be used for example in combination with
 * Clone the repository in your catkin workspace <br/>
 ```git clone https://github.com/claudiomenghi/Rest2Ros.git```
 
-* Compile your carkin workspace<br/>
+* Compile your carkin workspace <br/>
 ```catkin_make```
 
-* Source the workspace<br/>
+* Source the workspace <br/>
 ```source devel/setup.bash```
 
-* Run the `Rest2Ros` component<br/>
+* Run the `Rest2Ros` component <br/>
 ```rosrun ugot communication_manager.py```
 
