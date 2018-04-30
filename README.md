@@ -17,5 +17,5 @@ It can be used for example in combination with
 ```source devel/setup.bash```
 
 * Run the `Rest2Ros` component <br/>
-```rosrun ugot communication_manager.py```
+```rosrun ugot communication_manager.py _port:=13000```
 

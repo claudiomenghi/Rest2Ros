@@ -21,7 +21,7 @@ from std_msgs.msg import String
 from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
 
-
+import yaml
 
 
 class Rest:
@@ -35,7 +35,7 @@ class Rest:
 	def run(self):
 		while not rospy.is_shutdown():
 				#roslib.load_manifest("rosparam")
-				port = rospy.get_param('port')   
+				port = rospy.get_param('~port')   
 				#port=13000
                 		
 				server_address = ('', port)
