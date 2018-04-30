@@ -1,7 +1,18 @@
-catkin_make
+# Rest2Ros
 
-source devel/setup.bash
+It converts REST messages into ROS messages
 
+### Usage
 
-rosrun ugot communication_manager.py
+* Clone the repository in your catkin workspace 
+```git clone https://github.com/claudiomenghi/Rest2Ros.git```
+
+* Compile your carkin workspace
+```catkin_make```
+
+* Source the workspace
+```source devel/setup.bash```
+
+* Run the `Rest2Ros` component
+```rosrun ugot communication_manager.py```
 
