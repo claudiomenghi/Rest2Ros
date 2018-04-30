@@ -7,13 +7,11 @@ find_package(catkin REQUIRED
 					actionlib_msgs 
 					actionlib)
 
-catkin_python_setup()
+find_package(catkin REQUIRED)
 
 
-catkin_package()
+catkin_package(INCLUDE_DIRS include)
 
-include_directories(
-include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS} 
-)
+include_directories(include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS} )
 
 
