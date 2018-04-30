@@ -29,8 +29,8 @@ class Rest:
 	def __init__(self):
 		rospy.init_node('communication_manager', anonymous=False,disable_signals=True)
 		# What function to call when you ctrl + c    
-        messageType = rospy.get_param('~message')  
-		self.cmd_vel = rospy.Publisher('messageType, String, queue_size=100, latch=True)
+        	messageType = rospy.get_param('~message')  
+		self.cmd_vel = rospy.Publisher(messageType, String, queue_size=100, latch=True)
 		self.cmd_vel.publish("rest component activated")
 
 	def run(self):
