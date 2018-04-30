@@ -1,11 +1,8 @@
 <launch>
-	<!-- arguments -->
-	<arg name="agent" value="communication_manager" />
 
-	<!-- planner node -->
-	<group ns="communication_manager">
-		<rosparam command="load" file="$(find ugot)/config/$(arg agent)_params.yaml" />
-		<node name="communication_manager" pkg="ugot" type="communication_manager.py" output="screen" />
-	</group>
 
+	<node pkg="ugot" type="my_node" name="communication_manager" output="screen">
+		<param name="port" value="13000" />
+		<param name="message" value="local_mission" />
+	</node>
 </launch>
