@@ -1,6 +1,6 @@
 <launch>
 	<node pkg="communication_manager" type="communication_manager_node" name="communication_manager_node" output="screen">
 		<param name="port" value="8080" />
-		<param name="message" value="local_mission" />
+		<param name="topicName" value="local_mission" />
 	</node>
 </launch>
