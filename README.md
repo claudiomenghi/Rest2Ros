@@ -8,16 +8,16 @@ It can be used for example in combination with
 ### Usage
 
 * Clone the repository in your catkin workspace <br/>
-```git clone https://github.com/claudiomenghi/Rest2Ros.git```
+```bash git clone https://github.com/claudiomenghi/Rest2Ros.git```
 
 * Compile your carkin workspace <br/>
-`` `catkin_make` ``
+```bash catkin_make```
 
 * Source the workspace <br/>
-```source devel/setup.bash```
+```bash source devel/setup.bash```
 
 * Run the `Rest2Ros` component <br/>
-```launch communication_manager communication_manager.launch```
+```bash roslaunch communication_manager communication_manager.launch```
 
 
 ### Changing the port and the type of the message generated

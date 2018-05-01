@@ -32,7 +32,7 @@ class Rest:
 	def run(self):
 		while not rospy.is_shutdown():
 			port = rospy.get_param('~port') 
-                	topicType = rospy.get_param('~message')    
+                	topicType = rospy.get_param('~topicName')    
 
 			server_address = ('', port)
 			httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
