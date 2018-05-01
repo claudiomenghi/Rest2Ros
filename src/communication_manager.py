@@ -27,23 +27,18 @@ import yaml
 class Rest:
 
 	def __init__(self):
-		
+		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)		
 
 	def run(self):
 		while not rospy.is_shutdown():
-				#roslib.load_manifest("rosparam")
-				
+			port = rospy.get_param('~port') 
+                	topicType = rospy.get_param('~message')    
 
-				port = rospy.get_param('~port') 
-                topicType = rospy.get_param('~message')    
+			server_address = ('', port)
+			httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
+			print ("Waiting for a new mission on the port %s messages will be forwarded on the topic %s" %(port,topicType))
 
-				
-				server_address = ('', port)
-				httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
-				print ('Waiting for a new mission on the port %s messages will be forwarded on the topic %s', %(port,messageType))
-
-				
-				httpd.serve_forever()
+			httpd.serve_forever()
 				
 def main():
 	print "Running the communication manager"
