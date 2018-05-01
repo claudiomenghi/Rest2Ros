@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ugot)
+project(communication_manager)
 
 find_package(catkin REQUIRED 
 					COMPONENTS 
@@ -13,6 +13,6 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-include_directories(include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS} )
+include_directories(${catkin_INCLUDE_DIRS} )
 
 catkin_python_setup()

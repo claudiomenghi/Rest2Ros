@@ -36,9 +36,10 @@ class Rest:
 	def run(self):
 		while not rospy.is_shutdown():
 				#roslib.load_manifest("rosparam")
+				
+				print "Loading the port from the launch file"
 				port = rospy.get_param('~port')   
-				#port=13000
-                		
+				
 				server_address = ('', port)
 				httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
 				print ('Waiting for a new mission on the port ', port)
@@ -46,13 +47,12 @@ class Rest:
 				
 				httpd.serve_forever()
 				
-	
+def main():
+	print "Running the communication manager"
+	rest=Rest()
+        rest.run()
 	
 
-if __name__ == "__main__":
-	from sys import argv
+if  __name__ == "__main__":
 	rest=Rest()
-	if len(argv) == 2:
-		rest.run()
-	else:
-		rest.run()
+	rest.run()
