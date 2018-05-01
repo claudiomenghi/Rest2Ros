@@ -4,14 +4,15 @@ project(ugot)
 find_package(catkin REQUIRED 
 					COMPONENTS 
 					rospy 
+					roscpp
 					actionlib_msgs 
 					actionlib)
 
 find_package(catkin REQUIRED)
 
 
-catkin_package(INCLUDE_DIRS include)
+catkin_package()
 
 include_directories(include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS} )
 
-
+catkin_python_setup()
