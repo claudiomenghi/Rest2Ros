@@ -15,6 +15,12 @@ import sys
 import unicodedata
 import roslib
 import rosparam
+import zmq
+import random
+import sys
+import time
+
+
 from Request_Handler import Request_Handler
 from sys import getsizeof
 from std_msgs.msg import String
@@ -29,7 +35,27 @@ class Rest:
 	def __init__(self):
 		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)		
 
-	def run(self):
+	def publishLocations(self,msg=ms2_kth.msg.MissionLocations()):
+			locations = msg.data
+			print ("Sending to the subscribers the set of locations %s" %str(locations))
+			self.socket.send("locations %s" % str(locations))
+	def publishActions(self,msg=ms2_kth.msg.MissionActions()):
+			action = msg.data
+			print ("Sending to the subscribers the set of actions %s" %str(actions))
+			self.socket.send("actions %s" %str(actions))
+
+	def run(self)
+
+		rospy.Subscriber(rospy.get_param('mission_locations'), ms2_kth.msg.MissionLocations, self.publishLocations) 	
+		rospy.Subscriber(rospy.get_param('mission_actions'), ms2_kth.msg.MissionActions, self.publishActions) 	# 
+
+		port = "5556"
+	
+		context = zmq.Context()
+		self.socket = context.socket(zmq.PUB)
+		self.socket.bind("tcp://*:%s" % port)
+
+
 		while not rospy.is_shutdown():
 			port = rospy.get_param('~port') 
                 	topicType = rospy.get_param('~topicName')    
@@ -39,6 +65,8 @@ class Rest:
 			print ("Waiting for a new mission on the port %s messages will be forwarded on the topic %s" %(port,topicType))
 
 			httpd.serve_forever()
+
+
 				
 def main():
 	print "Running the communication manager"
