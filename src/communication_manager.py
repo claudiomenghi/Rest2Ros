@@ -19,9 +19,10 @@ import zmq
 import random
 import sys
 import time
-
+import threading
 
 from Request_Handler import Request_Handler
+from Publisher import Publisher
 from sys import getsizeof
 from std_msgs.msg import String
 from cgi import parse_header, parse_multipart
@@ -33,16 +34,20 @@ import yaml
 class Rest:
 
 	def __init__(self):
-		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)		
+		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)	
+		self.publisher=Publisher()	
+		thread = threading.Thread(target=self.publisher.run, args=())
+        thread.daemon = True                            # Daemonize thread
+        thread.start()
 
 	def publishLocations(self,msg=ms2_kth.msg.MissionLocations()):
 			locations = msg.data
 			print ("Sending to the subscribers the set of locations %s" %str(locations))
-			self.socket.send("locations %s" % str(locations))
+			self.publisher.send("locations %s" % str(locations))
 	def publishActions(self,msg=ms2_kth.msg.MissionActions()):
 			action = msg.data
 			print ("Sending to the subscribers the set of actions %s" %str(actions))
-			self.socket.send("actions %s" %str(actions))
+			self.publisher.send("actions %s" %str(actions))
 
 	def run(self)
 
