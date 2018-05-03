@@ -21,16 +21,18 @@ class Publisher:
        	self.sock=None
 
     def run(self):
-    	self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    	HOST = ''                 # Symbolic name meaning the local host
-    	PORT = 50007 
+ 
+	self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    	HOST = '0.0.0.0'                 # Symbolic name meaning the local host
+    	PORT = 13001
         self.sock.bind((HOST, PORT))
-        self.sock.listen(1)
-        print('Waiting for a subscriber')
-        conn, addr = self.sock.accept()
-        print('subscriber added')
-        self.socketset.add(conn)
-        self.send("Prendi questo")
+	self.sock.listen(1)        
+        while(True):	
+		print('Waiting for a subscriber')
+        	conn, addr = self.sock.accept()
+        	print('subscriber added')
+        	self.socketset.add(conn)
+        	self.send("Prendi questo\n")
 
     def connect(self, host, port):
         self.sock.connect((host, port))
@@ -39,7 +41,7 @@ class Publisher:
 
     	for socket in self.socketset:
 			socket.send(msg)
-
+			
     
 
 				

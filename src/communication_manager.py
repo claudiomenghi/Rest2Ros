@@ -15,7 +15,6 @@ import sys
 import unicodedata
 import roslib
 import rosparam
-import zmq
 import random
 import sys
 import time
@@ -28,6 +27,8 @@ from std_msgs.msg import String
 from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
 
+from ms2_kth.msg import * 
+
 import yaml
 
 
@@ -37,29 +38,25 @@ class Rest:
 		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)	
 		self.publisher=Publisher()	
 		thread = threading.Thread(target=self.publisher.run, args=())
-        thread.daemon = True                            # Daemonize thread
-        thread.start()
+        	thread.daemon = True                            # Daemonize thread
+        	thread.start()
 
 	def publishLocations(self,msg=ms2_kth.msg.MissionLocations()):
 			locations = msg.data
 			print ("Sending to the subscribers the set of locations %s" %str(locations))
 			self.publisher.send("locations %s" % str(locations))
+	
 	def publishActions(self,msg=ms2_kth.msg.MissionActions()):
 			action = msg.data
 			print ("Sending to the subscribers the set of actions %s" %str(actions))
 			self.publisher.send("actions %s" %str(actions))
 
-	def run(self)
+	def run(self):
 
-		rospy.Subscriber(rospy.get_param('mission_locations'), ms2_kth.msg.MissionLocations, self.publishLocations) 	
-		rospy.Subscriber(rospy.get_param('mission_actions'), ms2_kth.msg.MissionActions, self.publishActions) 	# 
+		rospy.Subscriber(rospy.get_param('~mission_locations'), ms2_kth.msg.MissionLocations, self.publishLocations) 	
+		rospy.Subscriber(rospy.get_param('~mission_actions'), ms2_kth.msg.MissionActions, self.publishActions) 	# 
 
-		port = "5556"
-	
-		context = zmq.Context()
-		self.socket = context.socket(zmq.PUB)
-		self.socket.bind("tcp://*:%s" % port)
-
+		
 
 		while not rospy.is_shutdown():
 			port = rospy.get_param('~port') 

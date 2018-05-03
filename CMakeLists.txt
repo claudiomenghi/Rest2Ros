@@ -15,4 +15,12 @@ catkin_package()
 
 include_directories(${catkin_INCLUDE_DIRS} )
 
+add_message_files(
+    FILES
+    MissionLocations.msg
+    MissionActions.msg
+#   Message2.msg
+ )
+
+
 catkin_python_setup()
