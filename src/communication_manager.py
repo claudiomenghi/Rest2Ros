@@ -36,45 +36,37 @@ class Rest:
 
 	def __init__(self):
 		rospy.init_node('communication_manager',anonymous=False,disable_signals=True)	
-		self.publisher=Publisher()	
+		pubsubport = rospy.get_param('~pubsubport')
+		self.publisher=Publisher(pubsubport)	
 		thread = threading.Thread(target=self.publisher.run, args=())
         	thread.daemon = True                            # Daemonize thread
         	thread.start()
-
-	def publishLocations(self,msg=ms2_kth.msg.MissionLocations()):
-			locations = msg.locations
-			print ("Sending to the subscribers the set of locations %s" %str(locations))
-			self.publisher.send("locations %s" % str(locations))
 	
-	def publishActions(self,msg=ms2_kth.msg.MissionActions()):
-			actions = msg.actions
+	def publish(self,msg):
+			action = msg.data
 			print ("Sending to the subscribers the set of actions %s" %str(actions))
 			self.publisher.send("actions %s" %str(actions))
 
 	def run(self):
 
-		rospy.Subscriber(rospy.get_param('~mission_locations'), ms2_kth.msg.MissionLocations, self.publishLocations) 	
-		rospy.Subscriber(rospy.get_param('~mission_actions'), ms2_kth.msg.MissionActions, self.publishActions) 	# 
-
-		
+		for topic in string.split(rospy.get_param('~forwardedtopics')):
+			print ("Communication manager will forward messages regarding the topic %s" %str(topic))
+			rospy.Subscriber(rospy.get_param(('~'+topic), String, self.publish) 	
 
 		while not rospy.is_shutdown():
-			port = rospy.get_param('~port') 
-                	topicType = rospy.get_param('~topicName')    
-
+			port = rospy.get_param('~port')
+			topicType = rospy.get_param('~topicName')    
 			server_address = ('', port)
-			httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
+			
+				httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
 			print ("Waiting for a new mission on the port %s messages will be forwarded on the topic %s" %(port,topicType))
 
 			httpd.serve_forever()
 
-
-				
 def main():
 	print "Running the communication manager"
 	rest=Rest()
         rest.run()
-	
 
 if  __name__ == "__main__":
 	rest=Rest()
