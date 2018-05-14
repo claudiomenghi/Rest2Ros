@@ -26,6 +26,7 @@ from sys import getsizeof
 from std_msgs.msg import String
 from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
+from std_msgs.msg import String
 
 from ms2_kth.msg import * 
 
@@ -49,16 +50,16 @@ class Rest:
 
 	def run(self):
 
-		for topic in string.split(rospy.get_param('~forwardedtopics')):
+		for topic in rospy.get_param('~forwardedtopics').split(","):
 			print ("Communication manager will forward messages regarding the topic %s" %str(topic))
-			rospy.Subscriber(rospy.get_param(('~'+topic), String, self.publish) 	
-
-		while not rospy.is_shutdown():
-			port = rospy.get_param('~port')
-			topicType = rospy.get_param('~topicName')    
-			server_address = ('', port)
-			
-				httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
+			subtopic="~" + topic
+			rospy.Subscriber(subtopic, String, self.publish) 
+	
+		port = rospy.get_param('~port')
+                topicType = rospy.get_param('~topicName')
+		
+		while not rospy.is_shutdown():			
+			httpd = HTTPServer(('0.0.0.0', port),Request_Handler)
 			print ("Waiting for a new mission on the port %s messages will be forwarded on the topic %s" %(port,topicType))
 
 			httpd.serve_forever()
