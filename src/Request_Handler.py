@@ -46,7 +46,7 @@ class Request_Handler(BaseHTTPRequestHandler):
 
 		pub=rospy.Publisher(topicName,String, queue_size=100)
 		pub.publish(missions[0])
-		print ('local mission sent in ROS')
+		print ('local mission sent in ROS with topic %s' %(topicName))
 
 		self.send_response(200)
 		self.end_headers()

@@ -42,12 +42,12 @@ class Rest:
         	thread.start()
 
 	def publishLocations(self,msg=ms2_kth.msg.MissionLocations()):
-			locations = msg.data
+			locations = msg.locations
 			print ("Sending to the subscribers the set of locations %s" %str(locations))
 			self.publisher.send("locations %s" % str(locations))
 	
 	def publishActions(self,msg=ms2_kth.msg.MissionActions()):
-			action = msg.data
+			actions = msg.actions
 			print ("Sending to the subscribers the set of actions %s" %str(actions))
 			self.publisher.send("actions %s" %str(actions))
 

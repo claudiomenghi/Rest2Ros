@@ -32,15 +32,18 @@ class Publisher:
         	conn, addr = self.sock.accept()
         	print('subscriber added')
         	self.socketset.add(conn)
-        	self.send("Prendi questo\n")
+        	#self.send("Prendi questo\n")
 
     def connect(self, host, port):
         self.sock.connect((host, port))
 
     def send(self, msg):
-
+	
+	print('subscriber, sending the message %s ' %str(msg))
     	for socket in self.socketset:
-			socket.send(msg)
+			print('sending the message to the first subscriber')
+			#socket.send("ciao")
+			socket.send(str(msg)+'\n')
 			
     
 
