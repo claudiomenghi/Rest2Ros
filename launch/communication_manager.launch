@@ -1,8 +1,10 @@
 <launch>
 	<node pkg="communication_manager" type="communication_manager_node" name="communication_manager_node" output="screen">
-		<param name="port" value="13000" />
-		<param name="mission_locations" value="mission_locations" />
-		<param name="mission_actions" value="mission_actions "/>
+		# The port in which the server is running
+        <param name="port" value="13000" />
+        <param name="pubsubport" value="13001" />
+
+		<param name="forwardedtopics" value="mission_locations,mission_actions" />
 		<param name="topicName" value="local_mission" />
 	</node>
 </launch>
