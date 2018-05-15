@@ -44,7 +44,7 @@ class Rest:
         	thread.start()
 	
 	def publish(self,msg):
-			action = msg.data
+			actions = msg.data
 			print ("Sending to the subscribers the set of actions %s" %str(actions))
 			self.publisher.send("actions %s" %str(actions))
 
